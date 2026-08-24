@@ -1,0 +1,55 @@
+chapter_id = "CH09"
+requirements = []
+
+[[topics]]
+topic_id = "iterators-generators"
+title = "迭代器与惰性生成器"
+comparison_anchor = "compare-iterators-generators"
+requirements = []
+
+[[comparison_cards]]
+topic_id = "iterators-generators"
+shared_purpose = "逐个消费数据并避免一次性加载全部结果"
+observable_difference = "Python for 自动调用 iter 和 next，yield 会暂停并保存函数状态"
+python_use_case = "流式文件、分页结果和可组合的数据管道"
+java_pitfall = "把生成器重复消费，或误以为它像 List 一样可随机访问"
+correction = "明确一次性迭代语义，需要复用时显式物化为集合"
+
+[[examples]]
+example_id = "ch09-iterators"
+source = "learning/chapters/09-iterators-generators/examples/ch09_iterators.py"
+python_spec = ">=3.12,<3.14"
+dependencies = []
+working_directory = "."
+input_preparation = "无需输入"
+command = ["python", "learning/chapters/09-iterators-generators/examples/ch09_iterators.py"]
+timeout_seconds = 5
+expected_exit_code = 0
+stdout_contains = ["countdown=[3, 2, 1]", "running_totals=[2, 5, 10]"]
+stderr_contains = []
+requirements = []
+
+[[boundaries]]
+boundary_id = "generator-invalid-size"
+topic_id = "iterators-generators"
+input = "chunk size=0"
+expected_behavior = "首次迭代前抛出 ValueError"
+requirements = []
+
+[[exercises]]
+exercise_id = "CH09-EX01"
+title = "惰性分块"
+entry = "learning/chapters/09-iterators-generators/exercises/exercise_ch09.py"
+acceptance_id = "ACC-01"
+observable_goal = "按固定大小惰性产出列表且保留尾块"
+
+[[acceptances]]
+acceptance_id = "ACC-01"
+exercise_id = "CH09-EX01"
+kind = "command"
+
+[acceptances.command]
+command = ["python", "-m", "tools.check_exercise", "--chapter", "09"]
+timeout_seconds = 20
+expected_exit_code = 0
+expected_output = ["passed"]

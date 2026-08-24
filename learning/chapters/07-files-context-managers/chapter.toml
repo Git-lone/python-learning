@@ -1,0 +1,55 @@
+chapter_id = "CH07"
+requirements = []
+
+[[topics]]
+topic_id = "files-context-managers"
+title = "文件与上下文管理"
+comparison_anchor = "compare-files-context-managers"
+requirements = []
+
+[[comparison_cards]]
+topic_id = "files-context-managers"
+shared_purpose = "可靠获取和释放文件、锁及连接等资源"
+observable_difference = "Python with 语句统一驱动上下文管理协议"
+python_use_case = "文件读写、临时目录、数据库事务和锁"
+java_pitfall = "依赖默认编码或忘记在异常路径关闭资源"
+correction = "显式指定编码，并把资源生命周期包在 with 中"
+
+[[examples]]
+example_id = "ch07-files"
+source = "learning/chapters/07-files-context-managers/examples/ch07_files.py"
+python_spec = ">=3.12,<3.14"
+dependencies = []
+working_directory = "."
+input_preparation = "示例自行创建并清理临时目录"
+command = ["python", "learning/chapters/07-files-context-managers/examples/ch07_files.py"]
+timeout_seconds = 5
+expected_exit_code = 0
+stdout_contains = ["loaded=2 file_closed=True", "suffix=.json"]
+stderr_contains = []
+requirements = []
+
+[[boundaries]]
+boundary_id = "empty-text-file"
+topic_id = "files-context-managers"
+input = "仅包含空白行的 UTF-8 文件"
+expected_behavior = "非空行计数为 0，文件仍被关闭"
+requirements = []
+
+[[exercises]]
+exercise_id = "CH07-EX01"
+title = "统计非空文本行"
+entry = "learning/chapters/07-files-context-managers/exercises/exercise_ch07.py"
+acceptance_id = "ACC-01"
+observable_goal = "用 pathlib 和 with 安全统计 UTF-8 文件"
+
+[[acceptances]]
+acceptance_id = "ACC-01"
+exercise_id = "CH07-EX01"
+kind = "command"
+
+[acceptances.command]
+command = ["python", "-m", "tools.check_exercise", "--chapter", "07"]
+timeout_seconds = 20
+expected_exit_code = 0
+expected_output = ["passed"]

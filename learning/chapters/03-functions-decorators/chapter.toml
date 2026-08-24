@@ -1,0 +1,55 @@
+chapter_id = "CH03"
+requirements = []
+
+[[topics]]
+topic_id = "functions-decorators"
+title = "闭包与装饰器"
+comparison_anchor = "compare-functions-decorators"
+requirements = []
+
+[[comparison_cards]]
+topic_id = "functions-decorators"
+shared_purpose = "封装行为并复用横切逻辑"
+observable_difference = "Python 函数是一等对象，装饰器在定义阶段替换函数绑定"
+python_use_case = "日志、重试、鉴权和参数校验"
+java_pitfall = "把装饰器理解成仅附加元数据的 Java 注解"
+correction = "把装饰器看作接收函数并返回新函数的高阶函数"
+
+[[examples]]
+example_id = "ch03-functions"
+source = "learning/chapters/03-functions-decorators/examples/ch03_functions.py"
+python_spec = ">=3.12,<3.14"
+dependencies = []
+working_directory = "."
+input_preparation = "无需输入"
+command = ["python", "learning/chapters/03-functions-decorators/examples/ch03_functions.py"]
+timeout_seconds = 5
+expected_exit_code = 0
+stdout_contains = ["add(2, 3)->5", "scaled=20"]
+stderr_contains = []
+requirements = []
+
+[[boundaries]]
+boundary_id = "closure-invalid-rate"
+topic_id = "functions-decorators"
+input = "rate=1.2"
+expected_behavior = "折扣闭包工厂抛出 ValueError"
+requirements = []
+
+[[exercises]]
+exercise_id = "CH03-EX01"
+title = "折扣闭包"
+entry = "learning/chapters/03-functions-decorators/exercises/exercise_ch03.py"
+acceptance_id = "ACC-01"
+observable_goal = "创建捕获折扣率且校验范围的函数"
+
+[[acceptances]]
+acceptance_id = "ACC-01"
+exercise_id = "CH03-EX01"
+kind = "command"
+
+[acceptances.command]
+command = ["python", "-m", "tools.check_exercise", "--chapter", "03"]
+timeout_seconds = 20
+expected_exit_code = 0
+expected_output = ["passed"]

@@ -1,0 +1,15 @@
+# Python >=3.12,<3.14
+# 直接依赖与传递依赖均精确锁定，以支持可复现的开发和验收环境。
+attrs==25.1.0
+colorama==0.4.6
+hypothesis==6.127.5
+iniconfig==2.0.0
+mypy==1.15.0
+mypy_extensions==1.0.0
+packaging==24.2
+pathspec==0.12.1
+pluggy==1.5.0
+Pygments==2.19.1
+pytest==8.3.5
+sortedcontainers==2.4.0
+typing_extensions==4.12.2

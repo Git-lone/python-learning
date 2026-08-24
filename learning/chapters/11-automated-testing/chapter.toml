@@ -1,0 +1,55 @@
+chapter_id = "CH11"
+requirements = []
+
+[[topics]]
+topic_id = "pytest-tests"
+title = "pytest 自动化测试"
+comparison_anchor = "compare-pytest-tests"
+requirements = []
+
+[[comparison_cards]]
+topic_id = "pytest-tests"
+shared_purpose = "自动验证正常路径、边界和异常行为"
+observable_difference = "pytest 使用普通 assert、函数夹具和参数化收集测试"
+python_use_case = "单元测试、集成测试和可执行回归契约"
+java_pitfall = "把 JUnit 注解结构逐字照搬，创建不必要的测试类"
+correction = "默认使用小型测试函数，只在共享状态确有价值时使用类和夹具"
+
+[[examples]]
+example_id = "ch11-pytest"
+source = "learning/chapters/11-automated-testing/examples/test_pricing.py"
+python_spec = ">=3.12,<3.14"
+dependencies = ["pytest"]
+working_directory = "."
+input_preparation = "需要安装 requirements-dev.lock 中锁定的 pytest"
+command = ["python", "-m", "pytest", "learning/chapters/11-automated-testing/examples/test_pricing.py", "-q"]
+timeout_seconds = 15
+expected_exit_code = 0
+stdout_contains = ["3 passed"]
+stderr_contains = []
+requirements = []
+
+[[boundaries]]
+boundary_id = "negative-price"
+topic_id = "pytest-tests"
+input = "price=-1"
+expected_behavior = "pytest.raises 验证 ValueError 及消息片段"
+requirements = []
+
+[[exercises]]
+exercise_id = "CH11-EX01"
+title = "补充折扣边界测试"
+entry = "learning/chapters/11-automated-testing/exercises/exercise_ch11.py"
+acceptance_id = "ACC-01"
+observable_goal = "使用 Arrange/Act/Assert 验证价格不会变为负数"
+
+[[acceptances]]
+acceptance_id = "ACC-01"
+exercise_id = "CH11-EX01"
+kind = "command"
+
+[acceptances.command]
+command = ["python", "-m", "tools.check_exercise", "--chapter", "11"]
+timeout_seconds = 20
+expected_exit_code = 0
+expected_output = ["passed"]

@@ -1,0 +1,33 @@
+[project]
+name = "python-learning-for-java-developers"
+version = "0.1.0"
+description = "面向 Java 开发者的 Python 学习路线"
+requires-python = ">=3.12,<3.14"
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3,<10",
+    "hypothesis>=6.100,<7",
+    "mypy>=1.14,<2",
+]
+
+[tool.pytest.ini_options]
+minversion = "8.3"
+addopts = "-ra --strict-config --strict-markers --hypothesis-profile=default"
+testpaths = ["tests", "learning"]
+python_files = ["test_*.py", "*_test.py"]
+xfail_strict = true
+
+[tool.mypy]
+python_version = "3.12"
+files = ["learning", "tools"]
+check_untyped_defs = true
+warn_unused_ignores = true
+show_error_codes = true
+pretty = true
+exclude = ["learning/chapters/08-type-hints/examples/type_errors\\.py$"]
+
+[[tool.mypy.overrides]]
+module = ["tools.*", "learning.capstone.starter.task_reporter.*"]
+disallow_untyped_defs = true

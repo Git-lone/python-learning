@@ -1,0 +1,55 @@
+chapter_id = "CH04"
+requirements = []
+
+[[topics]]
+topic_id = "oop-dataclasses"
+title = "对象模型与数据类"
+comparison_anchor = "compare-oop-dataclasses"
+requirements = []
+
+[[comparison_cards]]
+topic_id = "oop-dataclasses"
+shared_purpose = "把状态和行为组织成领域对象"
+observable_difference = "dataclass 自动生成初始化、比较和显示方法"
+python_use_case = "值对象、配置对象和轻量领域模型"
+java_pitfall = "为所有字段机械编写 JavaBean 风格 getter/setter"
+correction = "直接访问公开属性，并用 property 保护计算值或不变量"
+
+[[examples]]
+example_id = "ch04-oop"
+source = "learning/chapters/04-oop-dataclasses/examples/ch04_oop.py"
+python_spec = ">=3.12,<3.14"
+dependencies = []
+working_directory = "."
+input_preparation = "无需输入"
+command = ["python", "learning/chapters/04-oop-dataclasses/examples/ch04_oop.py"]
+timeout_seconds = 5
+expected_exit_code = 0
+stdout_contains = ["order=SO-1001 lines=2 total=55.00"]
+stderr_contains = []
+requirements = []
+
+[[boundaries]]
+boundary_id = "order-without-lines"
+topic_id = "oop-dataclasses"
+input = "Order 的 lines 使用默认值"
+expected_behavior = "每个实例得到独立空列表且 total 为 0"
+requirements = []
+
+[[exercises]]
+exercise_id = "CH04-EX01"
+title = "不可变金额值对象"
+entry = "learning/chapters/04-oop-dataclasses/exercises/exercise_ch04.py"
+acceptance_id = "ACC-01"
+observable_goal = "同币种金额可相加，不同币种被拒绝"
+
+[[acceptances]]
+acceptance_id = "ACC-01"
+exercise_id = "CH04-EX01"
+kind = "command"
+
+[acceptances.command]
+command = ["python", "-m", "tools.check_exercise", "--chapter", "04"]
+timeout_seconds = 20
+expected_exit_code = 0
+expected_output = ["passed"]

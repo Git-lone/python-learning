@@ -1,0 +1,55 @@
+chapter_id = "CH01"
+requirements = []
+
+[[topics]]
+topic_id = "bindings-control-flow"
+title = "名称绑定与控制流"
+comparison_anchor = "compare-bindings-control-flow"
+requirements = []
+
+[[comparison_cards]]
+topic_id = "bindings-control-flow"
+shared_purpose = "保存数据并根据条件控制执行路径"
+observable_difference = "Python 名称可重新绑定，代码块由缩进确定"
+python_use_case = "用少量语法表达脚本和业务规则"
+java_pitfall = "把 Python 名称误当成声明后类型固定的 Java 变量"
+correction = "关注对象类型和运行时绑定，并保持四空格缩进"
+
+[[examples]]
+example_id = "ch01-basics"
+source = "learning/chapters/01-basics/examples/ch01_basics.py"
+python_spec = ">=3.12,<3.14"
+dependencies = []
+working_directory = "."
+input_preparation = "无需输入；示例内置固定订单数据"
+command = ["python", "learning/chapters/01-basics/examples/ch01_basics.py"]
+timeout_seconds = 5
+expected_exit_code = 0
+stdout_contains = ["customer=Alice total=60.00", "grade=B items=2"]
+stderr_contains = []
+requirements = []
+
+[[boundaries]]
+boundary_id = "score-below-pass"
+topic_id = "bindings-control-flow"
+input = "score=59"
+expected_behavior = "classify_score 返回 D"
+requirements = []
+
+[[exercises]]
+exercise_id = "CH01-EX01"
+title = "描述订单"
+entry = "learning/chapters/01-basics/exercises/exercise_ch01.py"
+acceptance_id = "ACC-01"
+observable_goal = "输入单价和数量后输出总价与订单规模"
+
+[[acceptances]]
+acceptance_id = "ACC-01"
+exercise_id = "CH01-EX01"
+kind = "command"
+
+[acceptances.command]
+command = ["python", "-m", "tools.check_exercise", "--chapter", "01"]
+timeout_seconds = 20
+expected_exit_code = 0
+expected_output = ["passed"]
