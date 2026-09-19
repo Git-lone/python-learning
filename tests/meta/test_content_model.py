@@ -27,9 +27,9 @@ def _write(path: Path, content: str = "占位") -> Path:
 
 
 def _make_catalog(repo: Path) -> Path:
-    _write(repo / "learning/chapters/01-basics/README.md")
+    _write(repo / "chapters/01-basics/README.md")
     return _write(
-        repo / "learning/catalog.toml",
+        repo / "catalog.toml",
         """
         audience = ["具备 Java 基础"]
         python_spec = ">=3.12,<3.14"
@@ -38,8 +38,8 @@ def _make_catalog(repo: Path) -> Path:
         number = 1
         chapter_id = "CH01"
         title = "基础语法"
-        directory = "learning/chapters/01-basics"
-        entry = "learning/chapters/01-basics/README.md"
+        directory = "chapters/01-basics"
+        entry = "chapters/01-basics/README.md"
         prerequisites = []
 
         [[trace_links]]
@@ -50,10 +50,10 @@ def _make_catalog(repo: Path) -> Path:
 
 
 def _make_manifest(repo: Path) -> Path:
-    _write(repo / "learning/chapters/01-basics/examples/main.py")
-    _write(repo / "learning/chapters/01-basics/exercises/exercise_01.py")
+    _write(repo / "chapters/01-basics/examples/main.py")
+    _write(repo / "chapters/01-basics/exercises/exercise_01.py")
     return _write(
-        repo / "learning/chapters/01-basics/chapter.toml",
+        repo / "chapters/01-basics/chapter.toml",
         """
         chapter_id = "CH01"
         requirements = ["1.2", "3.2", "16.5"]
@@ -77,12 +77,12 @@ def _make_manifest(repo: Path) -> Path:
 
         [[examples]]
         example_id = "basics-main"
-        source = "learning/chapters/01-basics/examples/main.py"
+        source = "chapters/01-basics/examples/main.py"
         python_spec = ">=3.12,<3.14"
         dependencies = []
         working_directory = "."
         input_preparation = "无需准备"
-        command = ["python", "learning/chapters/01-basics/examples/main.py"]
+        command = ["python", "chapters/01-basics/examples/main.py"]
         timeout_seconds = 10
         expected_exit_code = 0
         stdout_contains = ["ok"]
@@ -99,7 +99,7 @@ def _make_manifest(repo: Path) -> Path:
         [[exercises]]
         exercise_id = "CH01-EX01"
         title = "变量练习"
-        entry = "learning/chapters/01-basics/exercises/exercise_01.py"
+        entry = "chapters/01-basics/exercises/exercise_01.py"
         acceptance_id = "ACC-01"
         observable_goal = "输出重新绑定结果"
 
@@ -127,7 +127,7 @@ def test_load_catalog_builds_immutable_catalog(tmp_path: Path) -> None:
     assert catalog.python_spec == ">=3.12,<3.14"
     assert catalog.chapters[0].number == 1
     assert catalog.chapters[0].entry == Path(
-        "learning/chapters/01-basics/README.md"
+        "chapters/01-basics/README.md"
     )
     assert catalog.trace_links[0].requirement_id == "1.2"
     with pytest.raises(FrozenInstanceError):
@@ -166,14 +166,14 @@ def test_loader_aggregates_and_stably_sorts_independent_issues(
         'example_id = "basics-main"\nsource = "../outside.py"',
         1,
     ).replace(
-        'source = "learning/chapters/01-basics/examples/main.py"\n',
+        'source = "chapters/01-basics/examples/main.py"\n',
         "",
         1,
     )
     duplicate = """
         [[examples]]
         example_id = "basics-main"
-        source = "learning/chapters/01-basics/examples/main.py"
+        source = "chapters/01-basics/examples/main.py"
         python_spec = ">=3.12,<3.14"
         dependencies = []
         working_directory = "."
@@ -205,7 +205,7 @@ def test_loader_aggregates_and_stably_sorts_independent_issues(
 def test_toml_parse_error_has_stable_code_and_raises_aggregate_error(
     tmp_path: Path,
 ) -> None:
-    path = _write(tmp_path / "learning/catalog.toml", 'python_spec = "unterminated')
+    path = _write(tmp_path / "catalog.toml", 'python_spec = "unterminated')
 
     with pytest.raises(ContentModelError) as raised:
         load_catalog(path, tmp_path)

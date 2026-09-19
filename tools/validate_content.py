@@ -343,13 +343,13 @@ def _has_anchor(path: Path, fragment: str) -> bool:
 
 def validate_repository(repo_root: Path) -> tuple[Issue, ...]:
     root = repo_root.resolve()
-    catalog_result = try_load_catalog(root / "learning/catalog.toml", root)
+    catalog_result = try_load_catalog(root / "catalog.toml", root)
     issues = list(catalog_result.issues)
     if catalog_result.value is None:
         return sort_issues(issues)
     catalog = catalog_result.value
     expected_directories = {(root / chapter.directory).resolve() for chapter in catalog.chapters}
-    chapters_root = root / "learning/chapters"
+    chapters_root = root / "chapters"
     actual_directories = {
         path.resolve()
         for path in chapters_root.iterdir()
@@ -357,7 +357,7 @@ def validate_repository(repo_root: Path) -> tuple[Issue, ...]:
     } if chapters_root.is_dir() else set()
     for directory in sorted(actual_directories - expected_directories, key=lambda value: value.as_posix()):
         issues.append(_issue(CATALOG_DIRECTORY_UNLISTED, f"章节目录未列入课程清单：{directory.name}", directory, entity_id=directory.name))
-    documents = {root / "README.md", root / "learning/INDEX.md"}
+    documents = {root / "README.md", root / "INDEX.md"}
     for chapter in catalog.chapters:
         readme = root / chapter.entry
         documents.add(readme)
@@ -373,7 +373,7 @@ def validate_repository(repo_root: Path) -> tuple[Issue, ...]:
         chapter_dir = root / chapter.directory
         if chapter_dir.is_dir():
             documents.update(chapter_dir.rglob("*.md"))
-    issues.extend(validate_navigation(catalog, root / "README.md", root / "learning/INDEX.md", root))
+    issues.extend(validate_navigation(catalog, root / "README.md", root / "INDEX.md", root))
     issues.extend(validate_links(documents, root))
     return sort_issues(issues)
 

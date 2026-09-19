@@ -55,7 +55,7 @@ def _chapter_readme() -> str:
 
     ## 可运行示例
     ### 运行记录：basics-main
-    从仓库根目录运行 `python learning/chapters/01-basics/examples/main.py`，预期退出码为 0。
+    从仓库根目录运行 `python chapters/01-basics/examples/main.py`，预期退出码为 0。
 
     ## 练习
     - `CH01-EX01`：补全变量绑定练习。
@@ -77,8 +77,8 @@ def _catalog() -> str:
     number = 1
     chapter_id = "CH01"
     title = "基础语法"
-    directory = "learning/chapters/01-basics"
-    entry = "learning/chapters/01-basics/README.md"
+    directory = "chapters/01-basics"
+    entry = "chapters/01-basics/README.md"
     prerequisites = []
     """
 
@@ -104,12 +104,12 @@ def _manifest() -> str:
 
     [[examples]]
     example_id = "basics-main"
-    source = "learning/chapters/01-basics/examples/main.py"
+    source = "chapters/01-basics/examples/main.py"
     python_spec = ">=3.12,<3.14"
     dependencies = []
     working_directory = "."
     input_preparation = "无需准备"
-    command = ["python", "learning/chapters/01-basics/examples/main.py"]
+    command = ["python", "chapters/01-basics/examples/main.py"]
     timeout_seconds = 5
     expected_exit_code = 0
     stdout_contains = ["完成"]
@@ -126,7 +126,7 @@ def _manifest() -> str:
     [[exercises]]
     exercise_id = "CH01-EX01"
     title = "变量练习"
-    entry = "learning/chapters/01-basics/exercises/exercise_01.py"
+    entry = "chapters/01-basics/exercises/exercise_01.py"
     acceptance_id = "ACC-01"
     observable_goal = "输出完成"
 
@@ -148,17 +148,17 @@ def _navigation(prefix: str) -> str:
 
     | 编号 | 主题 | 先修章节 | 唯一入口 |
     |---:|---|---|---|
-    | 1 | 基础语法 | 无 | [进入第 1 章]({prefix}learning/chapters/01-basics/README.md) |
+    | 1 | 基础语法 | 无 | [进入第 1 章]({prefix}chapters/01-basics/README.md) |
     """
 
 
 def _make_valid_course(repo: Path) -> None:
     _write(repo / "README.md", _navigation(""))
-    _write(repo / "learning/INDEX.md", _navigation("../"))
-    _write(repo / "learning/catalog.toml", _catalog())
-    _write(repo / "learning/chapters/01-basics/README.md", _chapter_readme())
+    _write(repo / "INDEX.md", _navigation(""))
+    _write(repo / "catalog.toml", _catalog())
+    _write(repo / "chapters/01-basics/README.md", _chapter_readme())
     _write(
-        repo / "learning/chapters/01-basics/examples/main.py",
+        repo / "chapters/01-basics/examples/main.py",
         """
         def main() -> int:
             print("完成")
@@ -168,7 +168,7 @@ def _make_valid_course(repo: Path) -> None:
             raise SystemExit(main())
         """,
     )
-    _write(repo / "learning/chapters/01-basics/exercises/exercise_01.py", "print('完成')")
+    _write(repo / "chapters/01-basics/exercises/exercise_01.py", "print('完成')")
     manifest = _manifest()
     for requirement in ("2.1", "3.2", "16.1", "16.5"):
         manifest += textwrap.dedent(
@@ -179,7 +179,7 @@ def _make_valid_course(repo: Path) -> None:
             artifact_id = "CH01"
             """
         )
-    _write(repo / "learning/chapters/01-basics/chapter.toml", manifest)
+    _write(repo / "chapters/01-basics/chapter.toml", manifest)
 
 
 def test_valid_repository_passes_all_validation_stages(tmp_path: Path) -> None:
@@ -190,7 +190,7 @@ def test_valid_repository_passes_all_validation_stages(tmp_path: Path) -> None:
 
 def test_mutations_are_located_and_stably_sorted(tmp_path: Path) -> None:
     _make_valid_course(tmp_path)
-    readme = tmp_path / "learning/chapters/01-basics/README.md"
+    readme = tmp_path / "chapters/01-basics/README.md"
     readme.write_text(
         readme.read_text(encoding="utf-8")
         .replace("## 验证方式", "## 验证")
@@ -198,8 +198,8 @@ def test_mutations_are_located_and_stably_sorted(tmp_path: Path) -> None:
         + "\n[损坏链接](missing.md)\n",
         encoding="utf-8",
     )
-    (tmp_path / "learning/chapters/99-extra").mkdir()
-    index = tmp_path / "learning/INDEX.md"
+    (tmp_path / "chapters/99-extra").mkdir()
+    index = tmp_path / "INDEX.md"
     index.write_text(index.read_text(encoding="utf-8").replace("基础语法", "错误主题"), encoding="utf-8")
 
     issues = validate_repository(tmp_path)
@@ -216,7 +216,7 @@ def test_mutations_are_located_and_stably_sorted(tmp_path: Path) -> None:
 
 
 def test_unparseable_catalog_suppresses_all_dependent_diagnostics(tmp_path: Path) -> None:
-    _write(tmp_path / "learning/catalog.toml", 'python_spec = "unterminated')
+    _write(tmp_path / "catalog.toml", 'python_spec = "unterminated')
 
     issues = validate_repository(tmp_path)
 
@@ -225,7 +225,7 @@ def test_unparseable_catalog_suppresses_all_dependent_diagnostics(tmp_path: Path
 
 def test_unparseable_chapter_manifest_suppresses_manifest_cascades(tmp_path: Path) -> None:
     _make_valid_course(tmp_path)
-    _write(tmp_path / "learning/chapters/01-basics/chapter.toml", 'chapter_id = "unterminated')
+    _write(tmp_path / "chapters/01-basics/chapter.toml", 'chapter_id = "unterminated')
 
     issues = validate_repository(tmp_path)
 
@@ -235,10 +235,10 @@ def test_unparseable_chapter_manifest_suppresses_manifest_cascades(tmp_path: Pat
 
 def test_placeholder_chapter_reports_unimplemented_items_explicitly(tmp_path: Path) -> None:
     _write(tmp_path / "README.md", _navigation(""))
-    _write(tmp_path / "learning/INDEX.md", _navigation("../"))
-    _write(tmp_path / "learning/catalog.toml", _catalog())
+    _write(tmp_path / "INDEX.md", _navigation(""))
+    _write(tmp_path / "catalog.toml", _catalog())
     _write(
-        tmp_path / "learning/chapters/01-basics/README.md",
+        tmp_path / "chapters/01-basics/README.md",
         """
         # 第 1 章：基础语法
 
@@ -256,7 +256,7 @@ def test_placeholder_chapter_reports_unimplemented_items_explicitly(tmp_path: Pa
 
 def test_requirement_without_trace_link_is_reported(tmp_path: Path) -> None:
     _make_valid_course(tmp_path)
-    manifest = tmp_path / "learning/chapters/01-basics/chapter.toml"
+    manifest = tmp_path / "chapters/01-basics/chapter.toml"
     content = manifest.read_text(encoding="utf-8")
     marker = '[[trace_links]]\nrequirement_id = "16.5"\nartifact_id = "CH01"'
     manifest.write_text(content.replace(marker, ""), encoding="utf-8")
@@ -275,7 +275,7 @@ def test_cli_returns_success_and_failure_exit_codes(
     assert main([], repo_root=tmp_path) == 0
     assert "内容校验通过" in capsys.readouterr().out
 
-    (tmp_path / "learning/chapters/01-basics/chapter.toml").unlink()
+    (tmp_path / "chapters/01-basics/chapter.toml").unlink()
     assert main([], repo_root=tmp_path) == 1
     output = capsys.readouterr()
     assert DOC_MANIFEST_MISSING in output.out

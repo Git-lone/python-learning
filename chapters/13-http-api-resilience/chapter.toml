@@ -1,0 +1,55 @@
+chapter_id = "CH13"
+requirements = []
+
+[[topics]]
+topic_id = "http-resilience"
+title = "HTTP 边界与有限重试"
+comparison_anchor = "compare-http-resilience"
+requirements = []
+
+[[comparison_cards]]
+topic_id = "http-resilience"
+shared_purpose = "调用远程服务并把不稳定网络转换为明确结果或错误"
+observable_difference = "Python 标准库使用上下文管理响应对象，异常按网络、HTTP 和解析阶段区分"
+python_use_case = "调用模型 API、工具 API、检索服务和内部微服务"
+java_pitfall = "无超时调用或对所有异常无限重试，放大故障和重复副作用"
+correction = "设置连接边界，只重试可恢复错误，并限制次数与总时间"
+
+[[examples]]
+example_id = "ch13-http-api"
+source = "chapters/13-http-api-resilience/examples/ch13_http_api.py"
+python_spec = ">=3.12,<3.14"
+dependencies = []
+working_directory = "."
+input_preparation = "示例在随机本地端口启动并关闭 HTTP 服务"
+command = ["python", "chapters/13-http-api-resilience/examples/ch13_http_api.py"]
+timeout_seconds = 10
+expected_exit_code = 0
+stdout_contains = ["status=200 service=catalog items=2", "timeout=explicit"]
+stderr_contains = []
+requirements = []
+
+[[boundaries]]
+boundary_id = "retry-budget-exhausted"
+topic_id = "http-resilience"
+input = "所有尝试均抛出 TimeoutError"
+expected_behavior = "达到重试上限后重新抛出最后一个 TimeoutError"
+requirements = []
+
+[[exercises]]
+exercise_id = "CH13-EX01"
+title = "有限重试 JSON 边界"
+entry = "chapters/13-http-api-resilience/exercises/exercise_ch13.py"
+acceptance_id = "ACC-01"
+observable_goal = "只重试超时并拒绝非对象 JSON"
+
+[[acceptances]]
+acceptance_id = "ACC-01"
+exercise_id = "CH13-EX01"
+kind = "command"
+
+[acceptances.command]
+command = ["python", "-m", "tools.check_exercise", "--chapter", "13"]
+timeout_seconds = 20
+expected_exit_code = 0
+expected_output = ["passed"]

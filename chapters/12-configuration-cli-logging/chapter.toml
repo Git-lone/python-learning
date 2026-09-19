@@ -1,0 +1,55 @@
+chapter_id = "CH12"
+requirements = []
+
+[[topics]]
+topic_id = "configuration-logging"
+title = "配置边界与可观察日志"
+comparison_anchor = "compare-configuration-logging"
+requirements = []
+
+[[comparison_cards]]
+topic_id = "configuration-logging"
+shared_purpose = "从外部配置启动应用并记录可诊断事件"
+observable_difference = "Python 环境变量都是字符串，logging 通过层级 Logger 与 Handler 组合"
+python_use_case = "命令行服务、批处理、Agent 运行参数和执行轨迹"
+java_pitfall = "把 os.environ 当成已经完成类型转换的 Spring 配置对象"
+correction = "在应用边界一次性解析为不可变数据类，并显式配置日志格式和级别"
+
+[[examples]]
+example_id = "ch12-configuration"
+source = "chapters/12-configuration-cli-logging/examples/ch12_configuration.py"
+python_spec = ">=3.12,<3.14"
+dependencies = []
+working_directory = "."
+input_preparation = "无需输入；示例注入固定环境映射"
+command = ["python", "chapters/12-configuration-cli-logging/examples/ch12_configuration.py"]
+timeout_seconds = 5
+expected_exit_code = 0
+stdout_contains = ["environment=dev level=INFO", "log=INFO:service started"]
+stderr_contains = []
+requirements = []
+
+[[boundaries]]
+boundary_id = "invalid-log-level"
+topic_id = "configuration-logging"
+input = "APP_LOG_LEVEL=LOUD"
+expected_behavior = "配置加载立即抛出 ValueError"
+requirements = []
+
+[[exercises]]
+exercise_id = "CH12-EX01"
+title = "强类型环境配置"
+entry = "chapters/12-configuration-cli-logging/exercises/exercise_ch12.py"
+acceptance_id = "ACC-01"
+observable_goal = "把主机、端口和调试开关解析为不可变 Settings"
+
+[[acceptances]]
+acceptance_id = "ACC-01"
+exercise_id = "CH12-EX01"
+kind = "command"
+
+[acceptances.command]
+command = ["python", "-m", "tools.check_exercise", "--chapter", "12"]
+timeout_seconds = 20
+expected_exit_code = 0
+expected_output = ["passed"]

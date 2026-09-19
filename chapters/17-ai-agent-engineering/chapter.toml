@@ -1,0 +1,55 @@
+chapter_id = "CH17"
+requirements = []
+
+[[topics]]
+topic_id = "agent-loop"
+title = "可控 Agent 循环"
+comparison_anchor = "compare-agent-loop"
+requirements = []
+
+[[comparison_cards]]
+topic_id = "agent-loop"
+shared_purpose = "根据目标反复决策、调用能力、观察结果并在满足条件时结束"
+observable_difference = "Agent 的决策来自模型，但循环、工具执行、预算、安全策略和审计由确定性代码控制"
+python_use_case = "多步研究、业务流程协助、代码操作和跨系统任务编排"
+java_pitfall = "把 Agent 等同于一次模型调用，或允许它在没有预算和白名单时无限行动"
+correction = "将动作建模为联合类型，设置步数与时间预算，记录轨迹并对高风险动作要求人工批准"
+
+[[examples]]
+example_id = "ch17-agent"
+source = "chapters/17-ai-agent-engineering/examples/ch17_agent.py"
+python_spec = ">=3.12,<3.14"
+dependencies = []
+working_directory = "."
+input_preparation = "使用离线 DemoModel 和 add 工具"
+command = ["python", "chapters/17-ai-agent-engineering/examples/ch17_agent.py"]
+timeout_seconds = 5
+expected_exit_code = 0
+stdout_contains = ["tool=add result=5", "final=2 + 3 = 5 steps=2"]
+stderr_contains = []
+requirements = []
+
+[[boundaries]]
+boundary_id = "agent-step-limit"
+topic_id = "agent-loop"
+input = "模型持续返回工具调用而不结束"
+expected_behavior = "达到 max_steps 后抛出 StepLimitError"
+requirements = []
+
+[[exercises]]
+exercise_id = "CH17-EX01"
+title = "安全 Agent 循环"
+entry = "chapters/17-ai-agent-engineering/exercises/exercise_ch17.py"
+acceptance_id = "ACC-01"
+observable_goal = "执行白名单工具、记录观察并严格限制步数"
+
+[[acceptances]]
+acceptance_id = "ACC-01"
+exercise_id = "CH17-EX01"
+kind = "command"
+
+[acceptances.command]
+command = ["python", "-m", "tools.check_exercise", "--chapter", "17"]
+timeout_seconds = 20
+expected_exit_code = 0
+expected_output = ["passed"]

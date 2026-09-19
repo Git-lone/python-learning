@@ -1,0 +1,55 @@
+chapter_id = "CH22"
+requirements = []
+
+[[topics]]
+topic_id = "retrieval-evaluation"
+title = "检索实现与离线评测"
+comparison_anchor = "compare-retrieval-evaluation"
+requirements = []
+
+[[comparison_cards]]
+topic_id = "retrieval-evaluation"
+shared_purpose = "对检索相关性与无证据拒答进行可重复评估"
+observable_difference = "集合去重和切片边界决定指标含义，不能将 Python list 长度当召回率"
+python_use_case = "版本回归、分桶分析和检索消融"
+java_pitfall = "拿三条合成题的满分宣称线上准确率"
+correction = "公开数据集规模、切分方式和指标口径"
+
+[[examples]]
+example_id = "ch22-demo"
+source = "chapters/22-retrieval-evaluation/examples/ch22_demo.py"
+python_spec = ">=3.12,<3.14"
+dependencies = ["pyproject.toml"]
+working_directory = "."
+input_preparation = "安装项目依赖，无需 API Key；仅使用合成数据"
+command = ["python", "chapters/22-retrieval-evaluation/examples/ch22_demo.py"]
+timeout_seconds = 30
+expected_exit_code = 0
+stdout_contains = ["\"dataset\": \"synthetic-v1\"","\"recall@3\": 1.0","\"correct_abstentions\": 2"]
+stderr_contains = []
+requirements = []
+
+[[boundaries]]
+boundary_id = "retrieval-evaluation-failure"
+topic_id = "retrieval-evaluation"
+input = "正常输入、缺失字段、非法输入或重复请求"
+expected_behavior = "公开数据集规模、切分方式和指标口径"
+requirements = []
+
+[[exercises]]
+exercise_id = "CH22-EX01"
+title = "正确计算 Recall@K，不能重复计数"
+entry = "chapters/22-retrieval-evaluation/exercises/exercise_ch22.py"
+acceptance_id = "ACC-01"
+observable_goal = "公开数据集规模、切分方式和指标口径"
+
+[[acceptances]]
+acceptance_id = "ACC-01"
+exercise_id = "CH22-EX01"
+kind = "command"
+
+[acceptances.command]
+command = ["python", "-m", "tools.check_exercise", "--chapter", "22"]
+timeout_seconds = 30
+expected_exit_code = 0
+expected_output = ["passed"]

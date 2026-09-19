@@ -1,0 +1,61 @@
+chapter_id = "CH18"
+requirements = []
+
+[[topics]]
+topic_id = "harness-loop"
+title = "Agent Harness 与循环工程"
+comparison_anchor = "compare-harness-loop"
+requirements = []
+
+[[comparison_cards]]
+topic_id = "harness-loop"
+shared_purpose = "在受控运行环境中重复决策、执行、验证和保存状态，直到满足停止条件"
+observable_difference = "Agent Loop 决定状态如何推进，Harness 则提供模型之外的工具、策略、预算、审批、持久化和观测控制面"
+python_use_case = "长任务 Agent、代码 Agent、跨系统自动化、需要人工审批和断点恢复的智能流程"
+java_pitfall = "把 Harness 当成 Prompt 包装器，或在恢复时重新询问模型并重复执行已有副作用"
+correction = "持久化待执行 call_id，恢复同一动作，以确定性验收控制结束，并用幂等工具处理至少一次执行风险"
+
+[[examples]]
+example_id = "ch18-harness"
+source = "chapters/18-agent-harness-loop/examples/ch18_harness.py"
+python_spec = ">=3.12,<3.14"
+dependencies = []
+working_directory = "."
+input_preparation = "使用离线 ReportModel、内存检查点和人工审批映射"
+command = ["python", "chapters/18-agent-harness-loop/examples/ch18_harness.py"]
+timeout_seconds = 5
+expected_exit_code = 0
+stdout_contains = [
+  "paused=waiting_approval pending=publish-weekly-001",
+  "completed=completed answer=周报已发布 tool_calls=1",
+  "published=本周完成 3 个任务",
+  "approval_requested",
+  "run_completed",
+]
+stderr_contains = []
+requirements = []
+
+[[boundaries]]
+boundary_id = "harness-pause-resume"
+topic_id = "harness-loop"
+input = "模型请求执行需要审批的副作用工具"
+expected_behavior = "Harness 在执行前保存 pending_call 并暂停，批准后从同一 call_id 恢复"
+requirements = []
+
+[[exercises]]
+exercise_id = "CH18-EX01"
+title = "可恢复的 Agent Harness Loop"
+entry = "chapters/18-agent-harness-loop/exercises/exercise_ch18.py"
+acceptance_id = "ACC-01"
+observable_goal = "实现预算、审批暂停恢复、检查点、完成验证和脱敏事件"
+
+[[acceptances]]
+acceptance_id = "ACC-01"
+exercise_id = "CH18-EX01"
+kind = "command"
+
+[acceptances.command]
+command = ["python", "-m", "tools.check_exercise", "--chapter", "18"]
+timeout_seconds = 20
+expected_exit_code = 0
+expected_output = ["passed"]

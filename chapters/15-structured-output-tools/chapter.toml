@@ -1,0 +1,55 @@
+chapter_id = "CH15"
+requirements = []
+
+[[topics]]
+topic_id = "tool-dispatch"
+title = "结构化工具调用与白名单"
+comparison_anchor = "compare-tool-dispatch"
+requirements = []
+
+[[comparison_cards]]
+topic_id = "tool-dispatch"
+shared_purpose = "把声明式动作路由到受控业务能力"
+observable_difference = "模型只提出工具名和参数，应用负责白名单、参数校验、执行和结果序列化"
+python_use_case = "Agent 查询、计算、搜索、写入和工作流动作"
+java_pitfall = "让模型直接生成并执行任意 Python 或 shell 代码"
+correction = "只暴露最小工具注册表，对每个参数和副作用单独验证与授权"
+
+[[examples]]
+example_id = "ch15-tools"
+source = "chapters/15-structured-output-tools/examples/ch15_tools.py"
+python_spec = ">=3.12,<3.14"
+dependencies = []
+working_directory = "."
+input_preparation = "无需输入；示例使用固定 add 调用"
+command = ["python", "chapters/15-structured-output-tools/examples/ch15_tools.py"]
+timeout_seconds = 5
+expected_exit_code = 0
+stdout_contains = ["tool=add result=5", "allowlist=enabled"]
+stderr_contains = []
+requirements = []
+
+[[boundaries]]
+boundary_id = "unknown-tool"
+topic_id = "tool-dispatch"
+input = "工具名不在注册表"
+expected_behavior = "执行前抛出可定位的 KeyError"
+requirements = []
+
+[[exercises]]
+exercise_id = "CH15-EX01"
+title = "工具注册表"
+entry = "chapters/15-structured-output-tools/exercises/exercise_ch15.py"
+acceptance_id = "ACC-01"
+observable_goal = "安全注册和执行白名单工具"
+
+[[acceptances]]
+acceptance_id = "ACC-01"
+exercise_id = "CH15-EX01"
+kind = "command"
+
+[acceptances.command]
+command = ["python", "-m", "tools.check_exercise", "--chapter", "15"]
+timeout_seconds = 20
+expected_exit_code = 0
+expected_output = ["passed"]

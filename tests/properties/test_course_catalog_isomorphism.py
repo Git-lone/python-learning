@@ -12,8 +12,8 @@ from tools.content_model import load_catalog
 
 
 ROOT = Path(__file__).resolve().parents[2]
-CHAPTERS = ROOT / "learning/chapters"
-CATALOG = load_catalog(ROOT / "learning/catalog.toml", ROOT)
+CHAPTERS = ROOT / "chapters"
+CATALOG = load_catalog(ROOT / "catalog.toml", ROOT)
 CourseEntry = tuple[int, str, Path]
 
 
@@ -55,7 +55,7 @@ def _course_views() -> dict[str, tuple[CourseEntry, ...]]:
         "实际章节目录": _directory_entries(),
         "catalog": _catalog_entries(),
         "根 README": _document_entries(ROOT / "README.md"),
-        "INDEX": _document_entries(ROOT / "learning/INDEX.md"),
+        "INDEX": _document_entries(ROOT / "INDEX.md"),
     }
 
 

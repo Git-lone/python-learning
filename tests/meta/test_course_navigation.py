@@ -7,7 +7,7 @@ from tools.content_model import load_catalog
 
 
 ROOT = Path(__file__).resolve().parents[2]
-CATALOG = load_catalog(ROOT / "learning/catalog.toml", ROOT)
+CATALOG = load_catalog(ROOT / "catalog.toml", ROOT)
 
 
 def _rows(path: Path) -> list[tuple[int, str, str, Path]]:
@@ -23,9 +23,9 @@ def _rows(path: Path) -> list[tuple[int, str, str, Path]]:
 
 
 def test_catalog_has_continuous_unique_chapters_and_resolvable_entries() -> None:
-    assert [chapter.number for chapter in CATALOG.chapters] == list(range(1, 12))
-    assert len({chapter.chapter_id for chapter in CATALOG.chapters}) == 11
-    assert len({chapter.entry for chapter in CATALOG.chapters}) == 11
+    assert [chapter.number for chapter in CATALOG.chapters] == list(range(1, 25))
+    assert len({chapter.chapter_id for chapter in CATALOG.chapters}) == 24
+    assert len({chapter.entry for chapter in CATALOG.chapters}) == 24
     for chapter in CATALOG.chapters:
         assert all(prerequisite < chapter.number for prerequisite in chapter.prerequisites)
         text = (ROOT / chapter.entry).read_text(encoding="utf-8")
@@ -34,7 +34,7 @@ def test_catalog_has_continuous_unique_chapters_and_resolvable_entries() -> None
 
 def test_overview_and_index_match_catalog_and_prerequisites() -> None:
     expected = [(chapter.number, chapter.title, (ROOT / chapter.entry).resolve()) for chapter in CATALOG.chapters]
-    for document in (ROOT / "README.md", ROOT / "learning/INDEX.md"):
+    for document in (ROOT / "README.md", ROOT / "INDEX.md"):
         rows = _rows(document)
         assert [(number, title, entry) for number, title, _, entry in rows] == expected
         for chapter, (_, _, shown, _) in zip(CATALOG.chapters, rows, strict=True):
@@ -46,7 +46,9 @@ def test_overview_and_index_match_catalog_and_prerequisites() -> None:
 
 
 def test_all_document_links_resolve() -> None:
-    documents = [ROOT / "README.md", ROOT / "learning/INDEX.md", *(ROOT / chapter.entry for chapter in CATALOG.chapters)]
+    documents = [ROOT / "README.md", ROOT / "INDEX.md", *(ROOT / chapter.entry for chapter in CATALOG.chapters)]
     for document in documents:
         for target in re.findall(r"\]\(([^)]+)\)", document.read_text(encoding="utf-8")):
+            if target.startswith(("https://", "http://", "#")):
+                continue
             assert (document.parent / target).resolve().is_file(), f"链接不存在：{document} -> {target}"

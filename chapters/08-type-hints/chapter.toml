@@ -1,0 +1,55 @@
+chapter_id = "CH08"
+requirements = []
+
+[[topics]]
+topic_id = "typing-protocols"
+title = "类型提示与协议"
+comparison_anchor = "compare-typing-protocols"
+requirements = []
+
+[[comparison_cards]]
+topic_id = "typing-protocols"
+shared_purpose = "在运行前表达接口契约并发现类型错误"
+observable_difference = "Python 类型提示默认不影响运行时，Protocol 支持结构化子类型"
+python_use_case = "为公共 API、领域模型和依赖边界提供静态检查"
+java_pitfall = "误以为注解会像 Java 编译器一样自动强制运行时类型"
+correction = "把 mypy 纳入验证，并在边界处做必要的运行时校验"
+
+[[examples]]
+example_id = "ch08-types"
+source = "chapters/08-type-hints/examples/ch08_types.py"
+python_spec = ">=3.12,<3.14"
+dependencies = []
+working_directory = "."
+input_preparation = "无需输入"
+command = ["python", "chapters/08-type-hints/examples/ch08_types.py"]
+timeout_seconds = 5
+expected_exit_code = 0
+stdout_contains = ["typed_total=30.00", "protocol=structural"]
+stderr_contains = []
+requirements = []
+
+[[boundaries]]
+boundary_id = "empty-generic-input"
+topic_id = "typing-protocols"
+input = "空 Iterable[T]"
+expected_behavior = "first_or_none 返回 None，返回类型为 T | None"
+requirements = []
+
+[[exercises]]
+exercise_id = "CH08-EX01"
+title = "泛型首元素函数"
+entry = "chapters/08-type-hints/exercises/exercise_ch08.py"
+acceptance_id = "ACC-01"
+observable_goal = "在不丢失元素类型的前提下处理空输入"
+
+[[acceptances]]
+acceptance_id = "ACC-01"
+exercise_id = "CH08-EX01"
+kind = "command"
+
+[acceptances.command]
+command = ["python", "-m", "tools.check_exercise", "--chapter", "08"]
+timeout_seconds = 20
+expected_exit_code = 0
+expected_output = ["passed"]

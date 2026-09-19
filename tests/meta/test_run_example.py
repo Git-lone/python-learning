@@ -199,11 +199,11 @@ def test_verifier_reports_exit_output_and_expected_exception_independently() -> 
 
 
 def _make_course(repo: Path) -> None:
-    _write(repo / "learning/chapters/01-basics/README.md", "# 基础语法")
-    _write(repo / "learning/chapters/01-basics/examples/main.py", "print('章节完成')")
-    _write(repo / "learning/chapters/01-basics/exercises/exercise_01.py", "pass")
+    _write(repo / "chapters/01-basics/README.md", "# 基础语法")
+    _write(repo / "chapters/01-basics/examples/main.py", "print('章节完成')")
+    _write(repo / "chapters/01-basics/exercises/exercise_01.py", "pass")
     _write(
-        repo / "learning/catalog.toml",
+        repo / "catalog.toml",
         """
         audience = ["具备 Java 基础"]
         python_spec = ">=3.12,<3.14"
@@ -212,13 +212,13 @@ def _make_course(repo: Path) -> None:
         number = 1
         chapter_id = "CH01"
         title = "基础语法"
-        directory = "learning/chapters/01-basics"
-        entry = "learning/chapters/01-basics/README.md"
+        directory = "chapters/01-basics"
+        entry = "chapters/01-basics/README.md"
         prerequisites = []
         """,
     )
     _write(
-        repo / "learning/chapters/01-basics/chapter.toml",
+        repo / "chapters/01-basics/chapter.toml",
         """
         chapter_id = "CH01"
         requirements = ["3.3", "3.8"]
@@ -239,12 +239,12 @@ def _make_course(repo: Path) -> None:
 
         [[examples]]
         example_id = "basics-main"
-        source = "learning/chapters/01-basics/examples/main.py"
+        source = "chapters/01-basics/examples/main.py"
         python_spec = ">=3.12,<3.14"
         dependencies = []
         working_directory = "."
         input_preparation = "无需准备"
-        command = ["python", "learning/chapters/01-basics/examples/main.py"]
+        command = ["python", "chapters/01-basics/examples/main.py"]
         timeout_seconds = 5
         expected_exit_code = 0
         stdout_contains = ["章节完成"]
@@ -261,7 +261,7 @@ def _make_course(repo: Path) -> None:
         [[exercises]]
         exercise_id = "CH01-EX01"
         title = "练习"
-        entry = "learning/chapters/01-basics/exercises/exercise_01.py"
+        entry = "chapters/01-basics/exercises/exercise_01.py"
         acceptance_id = "ACC-01"
         observable_goal = "完成"
 

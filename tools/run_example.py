@@ -161,6 +161,7 @@ def run_example(record: ExampleRun, repo_root: Path) -> ExecutionResult:
     environment = os.environ.copy()
     environment["PYTHONUTF8"] = "1"
     environment["PYTHONIOENCODING"] = "utf-8"
+    environment["PYTHONPATH"] = str(root)
     started = time.perf_counter()
     try:
         process = subprocess.Popen(
@@ -327,7 +328,7 @@ def _load_records(
     chapter_selector: str | None,
     example_selector: str | None,
 ) -> tuple[list[tuple[str, ExampleRun]], tuple[Issue, ...]]:
-    catalog_path = repo_root / "learning/catalog.toml"
+    catalog_path = repo_root / "catalog.toml"
     try:
         catalog = load_catalog(catalog_path, repo_root)
     except ContentModelError as error:

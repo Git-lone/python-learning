@@ -1,0 +1,55 @@
+chapter_id = "CH20"
+requirements = []
+
+[[topics]]
+topic_id = "mcp-protocol"
+title = "MCP 真实进程通信"
+comparison_anchor = "compare-mcp-protocol"
+requirements = []
+
+[[comparison_cards]]
+topic_id = "mcp-protocol"
+shared_purpose = "跨进程暴露并发现结构化工具接口"
+observable_difference = "本章 Python 使用 MCPServer/Client，底层不是直接调用 Python 函数"
+python_use_case = "在本地 stdio 子进程中测试 MCP 协议"
+java_pitfall = "将工具说明或 readOnlyHint 当成权限保障"
+correction = "权限在服务端执行，业务结果另外做 schema 校验"
+
+[[examples]]
+example_id = "ch20-demo"
+source = "chapters/20-mcp-protocol/examples/ch20_demo.py"
+python_spec = ">=3.12,<3.14"
+dependencies = ["pyproject.toml"]
+working_directory = "."
+input_preparation = "安装项目依赖，无需 API Key；仅使用合成数据"
+command = ["python", "chapters/20-mcp-protocol/examples/ch20_demo.py"]
+timeout_seconds = 30
+expected_exit_code = 0
+stdout_contains = ["MCP tool=ticket_status","missing_ticket=handled"]
+stderr_contains = []
+requirements = []
+
+[[boundaries]]
+boundary_id = "mcp-protocol-failure"
+topic_id = "mcp-protocol"
+input = "正常输入、缺失字段、非法输入或重复请求"
+expected_behavior = "权限在服务端执行，业务结果另外做 schema 校验"
+requirements = []
+
+[[exercises]]
+exercise_id = "CH20-EX01"
+title = "校验工具返回值而不是只判断 HTTP 成功"
+entry = "chapters/20-mcp-protocol/exercises/exercise_ch20.py"
+acceptance_id = "ACC-01"
+observable_goal = "权限在服务端执行，业务结果另外做 schema 校验"
+
+[[acceptances]]
+acceptance_id = "ACC-01"
+exercise_id = "CH20-EX01"
+kind = "command"
+
+[acceptances.command]
+command = ["python", "-m", "tools.check_exercise", "--chapter", "20"]
+timeout_seconds = 30
+expected_exit_code = 0
+expected_output = ["passed"]

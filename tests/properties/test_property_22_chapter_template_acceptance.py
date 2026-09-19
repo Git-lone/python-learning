@@ -96,7 +96,7 @@ def _manifest(kinds: list[AcceptanceKind]) -> str:
 [[exercises]]
 exercise_id = "CH01-EX{index:02d}"
 title = "结构练习 {index}"
-entry = "learning/chapters/01-property/exercises/exercise_{index:02d}.py"
+entry = "chapters/01-property/exercises/exercise_{index:02d}.py"
 acceptance_id = "ACC-{index:02d}"
 observable_goal = "输出练习 {index} 通过"
 """
@@ -125,12 +125,12 @@ correction = "同步维护清单"
 
 [[examples]]
 example_id = "structure-main"
-source = "learning/chapters/01-property/examples/main.py"
+source = "chapters/01-property/examples/main.py"
 python_spec = ">=3.12,<3.14"
 dependencies = []
 working_directory = "."
 input_preparation = "无需准备"
-command = ["python", "learning/chapters/01-property/examples/main.py"]
+command = ["python", "chapters/01-property/examples/main.py"]
 timeout_seconds = 10
 expected_exit_code = 0
 stdout_contains = ["完成"]
@@ -149,7 +149,7 @@ requirements = []
 def _make_chapter(
     repo: Path, objective_count: int, kinds: list[AcceptanceKind]
 ) -> tuple[Path, Path]:
-    chapter = repo / "learning/chapters/01-property"
+    chapter = repo / "chapters/01-property"
     readme = chapter / "README.md"
     manifest = chapter / "chapter.toml"
     _write(readme, _readme(objective_count, kinds))
@@ -199,8 +199,8 @@ def test_chapter_template_and_acceptance_bijection(
             1,
             "CH01",
             "属性测试章节",
-            Path("learning/chapters/01-property"),
-            Path("learning/chapters/01-property/README.md"),
+            Path("chapters/01-property"),
+            Path("chapters/01-property/README.md"),
             (),
         )
         assert validate_manifest_document(manifest, chapter_ref, readme, repo) == []

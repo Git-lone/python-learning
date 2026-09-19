@@ -1,0 +1,55 @@
+chapter_id = "CH23"
+requirements = []
+
+[[topics]]
+topic_id = "agent-api"
+title = "FastAPI 服务与 SSE 协议"
+comparison_anchor = "compare-agent-api"
+requirements = []
+
+[[comparison_cards]]
+topic_id = "agent-api"
+shared_purpose = "通过可验证的服务协议提供检索增强答案"
+observable_difference = "Python async 生命周期与 Java WebFlux 相似，但不要在事件循环中阻塞"
+python_use_case = "流式输出、身份校验和调用失败反馈"
+java_pitfall = "已发响应头后还尝试改 HTTP 状态码"
+correction = "客户端识别 error/done 终态；鉴权在流开始前完成"
+
+[[examples]]
+example_id = "ch23-demo"
+source = "chapters/23-agent-api/examples/ch23_demo.py"
+python_spec = ">=3.12,<3.14"
+dependencies = ["pyproject.toml"]
+working_directory = "."
+input_preparation = "安装项目依赖，无需 API Key；仅使用合成数据"
+command = ["python", "chapters/23-agent-api/examples/ch23_demo.py"]
+timeout_seconds = 30
+expected_exit_code = 0
+stdout_contains = ["API status=200 done=True tenant_isolated=True"]
+stderr_contains = []
+requirements = []
+
+[[boundaries]]
+boundary_id = "agent-api-failure"
+topic_id = "agent-api"
+input = "正常输入、缺失字段、非法输入或重复请求"
+expected_behavior = "客户端识别 error/done 终态；鉴权在流开始前完成"
+requirements = []
+
+[[exercises]]
+exercise_id = "CH23-EX01"
+title = "安全编码 SSE，正文换行不能伪造事件"
+entry = "chapters/23-agent-api/exercises/exercise_ch23.py"
+acceptance_id = "ACC-01"
+observable_goal = "客户端识别 error/done 终态；鉴权在流开始前完成"
+
+[[acceptances]]
+acceptance_id = "ACC-01"
+exercise_id = "CH23-EX01"
+kind = "command"
+
+[acceptances.command]
+command = ["python", "-m", "tools.check_exercise", "--chapter", "23"]
+timeout_seconds = 30
+expected_exit_code = 0
+expected_output = ["passed"]

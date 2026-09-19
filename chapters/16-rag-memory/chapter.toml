@@ -1,0 +1,55 @@
+chapter_id = "CH16"
+requirements = []
+
+[[topics]]
+topic_id = "retrieval-memory"
+title = "检索上下文与有界记忆"
+comparison_anchor = "compare-retrieval-memory"
+requirements = []
+
+[[comparison_cards]]
+topic_id = "retrieval-memory"
+shared_purpose = "从外部知识和对话历史中选择当前请求所需上下文"
+observable_difference = "RAG 在推理前检索证据，记忆必须经过筛选和长度预算而不是无限拼接"
+python_use_case = "知识问答、客服助手、代码助手和长期任务 Agent"
+java_pitfall = "把整个数据库或全部聊天记录塞进提示词，忽略相关性、来源和上下文成本"
+correction = "建立切分、检索、排序、引用和有界记忆的独立管线"
+
+[[examples]]
+example_id = "ch16-rag-memory"
+source = "chapters/16-rag-memory/examples/ch16_rag_memory.py"
+python_spec = ">=3.12,<3.14"
+dependencies = []
+working_directory = "."
+input_preparation = "使用三条内存文档和固定查询"
+command = ["python", "chapters/16-rag-memory/examples/ch16_rag_memory.py"]
+timeout_seconds = 5
+expected_exit_code = 0
+stdout_contains = ["top=files memory=2", "user: close file | assistant: use with"]
+stderr_contains = []
+requirements = []
+
+[[boundaries]]
+boundary_id = "retrieval-no-overlap"
+topic_id = "retrieval-memory"
+input = "查询与全部文档没有共享词项"
+expected_behavior = "返回空结果而不是无依据文档"
+requirements = []
+
+[[exercises]]
+exercise_id = "CH16-EX01"
+title = "确定性词项检索"
+entry = "chapters/16-rag-memory/exercises/exercise_ch16.py"
+acceptance_id = "ACC-01"
+observable_goal = "按重叠分数和稳定键排序文档"
+
+[[acceptances]]
+acceptance_id = "ACC-01"
+exercise_id = "CH16-EX01"
+kind = "command"
+
+[acceptances.command]
+command = ["python", "-m", "tools.check_exercise", "--chapter", "16"]
+timeout_seconds = 20
+expected_exit_code = 0
+expected_output = ["passed"]

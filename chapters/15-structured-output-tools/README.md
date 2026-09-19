@@ -1,0 +1,58 @@
+# 第 15 章：结构化输出与工具调用
+
+**先修章节：** [第 4 章：面向对象与数据类](../04-oop-dataclasses/README.md)、[第 5 章：异常处理](../05-exceptions/README.md)、[第 8 章：类型提示](../08-type-hints/README.md)、[第 14 章：LLM 应用基础](../14-llm-application-basics/README.md)
+
+工具调用不是让模型执行代码，而是让模型提出一个结构化动作，再由应用决定是否允许以及如何执行。
+
+## 学习目标
+
+- 把工具名称、说明、参数约束和执行函数建模为显式注册表。
+- 严格区分“模型提出调用”和“应用授权执行”，拒绝未知名称与非法参数。
+- 把工具结果和错误转换为可记录、可再次提供给模型的观察事件。
+
+## Java 对照
+
+### 对照卡：工具注册与命令分派 {#compare-tool-dispatch}
+
+- 共同用途：把声明式命令路由到受控处理器，并统一记录结果。
+- 可验证行为差异：模型只能生成候选工具调用；Python 应用仍负责白名单、参数解析、授权和真实副作用。
+- Python 适用场景：查询订单、执行计算、搜索知识、创建工单和调用内部 API。
+- Java 开发者常见误区：把模型输出直接交给 `eval`、shell 或反射调用任意函数。
+- 修正方式：注册最小工具集合，逐字段校验参数，并为写操作增加幂等、权限和人工审批。
+
+```java
+Map<String, ToolHandler> tools = Map.of("add", this::add);
+Object result = tools.get(call.name()).execute(call.arguments());
+```
+
+```python
+# 模型只能选择注册表里的名字，不能指定任意 Python 函数。
+registry.register("add", add)
+result = registry.execute(call.name, call.arguments)
+```
+
+## Python 知识
+
+工具描述面向模型，执行器面向应用。不要把数据库连接、访问令牌或内部对象交给模型；工具参数只包含完成动作所需的最小数据。参数校验必须发生在任何副作用之前。
+
+工具失败不一定意味着整个 Agent 失败。可恢复错误可以转成观察，交给模型调整参数；权限拒绝、预算耗尽和高风险动作则应由确定性策略终止或请求人工确认。
+
+## 可运行示例
+
+### 示例：ch15-tools
+
+[ch15_tools.py](examples/ch15_tools.py) 注册一个经过整数校验的 `add` 工具，并执行固定结构化调用。运行：`python -m tools.run_example --chapter 15`。
+
+## 练习
+
+- `CH15-EX01`：[实现 ToolRegistry](exercises/exercise_ch15.py)，支持注册、执行，并拒绝空名称、重复名称和未知名称。
+
+注册表只负责路由，不替处理器猜测参数。完成后运行 `python -m tools.check_exercise --chapter 15`，再查看带注释的[参考答案](../../solutions/ch15_tools.py)。
+
+## 验证方式
+
+示例应输出 `tool=add result=5` 和 `allowlist=enabled`。练习检查覆盖正常执行、未知工具、重复注册和空名称。
+
+## 章节总结
+
+工具调用的安全性来自应用控制，不来自模型自律。白名单、参数校验、权限、幂等和审计共同构成 Agent 的动作边界。

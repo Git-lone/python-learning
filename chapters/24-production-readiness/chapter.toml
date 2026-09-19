@@ -1,0 +1,55 @@
+chapter_id = "CH24"
+requirements = []
+
+[[topics]]
+topic_id = "production-readiness"
+title = "上线指标与作品集验收"
+comparison_anchor = "compare-production-readiness"
+requirements = []
+
+[[comparison_cards]]
+topic_id = "production-readiness"
+shared_purpose = "基于可观察证据决定是否发布，而不只展示成功截图"
+observable_difference = "金额用 Decimal，不能用二进制浮点假装精确货币"
+python_use_case = "成本核算、指标门禁和项目演示"
+java_pitfall = "把异常值 NaN 或权限失败混入平均数后放行"
+correction = "先校验指标有效性，权限失败作为硬门禁"
+
+[[examples]]
+example_id = "ch24-demo"
+source = "chapters/24-production-readiness/examples/ch24_demo.py"
+python_spec = ">=3.12,<3.14"
+dependencies = ["pyproject.toml"]
+working_directory = "."
+input_preparation = "安装项目依赖，无需 API Key；仅使用合成数据"
+command = ["python", "chapters/24-production-readiness/examples/ch24_demo.py"]
+timeout_seconds = 30
+expected_exit_code = 0
+stdout_contains = ["illustrative_cost=0.0036","release_with_permission_failure=False"]
+stderr_contains = []
+requirements = []
+
+[[boundaries]]
+boundary_id = "production-readiness-failure"
+topic_id = "production-readiness"
+input = "正常输入、缺失字段、非法输入或重复请求"
+expected_behavior = "先校验指标有效性，权限失败作为硬门禁"
+requirements = []
+
+[[exercises]]
+exercise_id = "CH24-EX01"
+title = "安全底线不能被平均指标掩盖"
+entry = "chapters/24-production-readiness/exercises/exercise_ch24.py"
+acceptance_id = "ACC-01"
+observable_goal = "先校验指标有效性，权限失败作为硬门禁"
+
+[[acceptances]]
+acceptance_id = "ACC-01"
+exercise_id = "CH24-EX01"
+kind = "command"
+
+[acceptances.command]
+command = ["python", "-m", "tools.check_exercise", "--chapter", "24"]
+timeout_seconds = 30
+expected_exit_code = 0
+expected_output = ["passed"]

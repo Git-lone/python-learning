@@ -1,0 +1,55 @@
+chapter_id = "CH10"
+requirements = []
+
+[[topics]]
+topic_id = "structured-concurrency"
+title = "结构化异步并发"
+comparison_anchor = "compare-structured-concurrency"
+requirements = []
+
+[[comparison_cards]]
+topic_id = "structured-concurrency"
+shared_purpose = "让多个独立任务重叠执行并集中处理失败"
+observable_difference = "asyncio 通过单线程事件循环协作调度协程"
+python_use_case = "大量 I/O 等待、并发请求和异步服务"
+java_pitfall = "在协程中直接调用阻塞函数，导致整个事件循环停顿"
+correction = "异步库使用 await，无法避免的阻塞调用交给 asyncio.to_thread"
+
+[[examples]]
+example_id = "ch10-concurrency"
+source = "chapters/10-concurrency-asyncio/examples/ch10_concurrency.py"
+python_spec = ">=3.12,<3.14"
+dependencies = []
+working_directory = "."
+input_preparation = "无需输入；任务只执行短暂本地计算和休眠"
+command = ["python", "chapters/10-concurrency-asyncio/examples/ch10_concurrency.py"]
+timeout_seconds = 5
+expected_exit_code = 0
+stdout_contains = ["results=['sync-A', 'async-B']", "event_loop=closed"]
+stderr_contains = []
+requirements = []
+
+[[boundaries]]
+boundary_id = "invalid-concurrency-limit"
+topic_id = "structured-concurrency"
+input = "limit=0"
+expected_behavior = "run_limited 在创建任务前抛出 ValueError"
+requirements = []
+
+[[exercises]]
+exercise_id = "CH10-EX01"
+title = "受限异步并发"
+entry = "chapters/10-concurrency-asyncio/exercises/exercise_ch10.py"
+acceptance_id = "ACC-01"
+observable_goal = "限制同时运行的协程数量并保持结果顺序"
+
+[[acceptances]]
+acceptance_id = "ACC-01"
+exercise_id = "CH10-EX01"
+kind = "command"
+
+[acceptances.command]
+command = ["python", "-m", "tools.check_exercise", "--chapter", "10"]
+timeout_seconds = 20
+expected_exit_code = 0
+expected_output = ["passed"]

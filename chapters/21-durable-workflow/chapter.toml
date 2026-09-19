@@ -1,0 +1,55 @@
+chapter_id = "CH21"
+requirements = []
+
+[[topics]]
+topic_id = "durable-workflow"
+title = "LangGraph 持久化与人工审批"
+comparison_anchor = "compare-durable-workflow"
+requirements = []
+
+[[comparison_cards]]
+topic_id = "durable-workflow"
+shared_purpose = "长任务暂停后跨进程恢复并避免重复副作用"
+observable_difference = "LangGraph 的 interrupt 恢复会重新执行所在节点，并非恢复 Python 栈帧"
+python_use_case = "需人工确认的 Agent 操作和可恢复工作流"
+java_pitfall = "把 checkpoint 等同于业务事务的 exactly-once"
+correction = "先审批，后副作用；幂等键与请求内容绑定"
+
+[[examples]]
+example_id = "ch21-demo"
+source = "chapters/21-durable-workflow/examples/ch21_demo.py"
+python_spec = ">=3.12,<3.14"
+dependencies = ["pyproject.toml"]
+working_directory = "."
+input_preparation = "安装项目依赖，无需 API Key；仅使用合成数据"
+command = ["python", "chapters/21-durable-workflow/examples/ch21_demo.py"]
+timeout_seconds = 30
+expected_exit_code = 0
+stdout_contains = ["waiting_approval","deliveries=0","published:demo-thread","deliveries=1"]
+stderr_contains = []
+requirements = []
+
+[[boundaries]]
+boundary_id = "durable-workflow-failure"
+topic_id = "durable-workflow"
+input = "正常输入、缺失字段、非法输入或重复请求"
+expected_behavior = "先审批，后副作用；幂等键与请求内容绑定"
+requirements = []
+
+[[exercises]]
+exercise_id = "CH21-EX01"
+title = "带载荷冲突校验的幂等发布"
+entry = "chapters/21-durable-workflow/exercises/exercise_ch21.py"
+acceptance_id = "ACC-01"
+observable_goal = "先审批，后副作用；幂等键与请求内容绑定"
+
+[[acceptances]]
+acceptance_id = "ACC-01"
+exercise_id = "CH21-EX01"
+kind = "command"
+
+[acceptances.command]
+command = ["python", "-m", "tools.check_exercise", "--chapter", "21"]
+timeout_seconds = 30
+expected_exit_code = 0
+expected_output = ["passed"]

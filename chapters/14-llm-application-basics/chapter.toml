@@ -1,0 +1,55 @@
+chapter_id = "CH14"
+requirements = []
+
+[[topics]]
+topic_id = "llm-boundary"
+title = "模型客户端边界与消息"
+comparison_anchor = "compare-llm-boundary"
+requirements = []
+
+[[comparison_cards]]
+topic_id = "llm-boundary"
+shared_purpose = "通过接口隔离外部智能服务并获得可消费结果"
+observable_difference = "LLM 输出是概率文本，即使提示要求 JSON 也必须在运行时解析校验"
+python_use_case = "分类、抽取、总结、对话以及 Agent 决策模型"
+java_pitfall = "把模型响应当成可信 DTO，或让供应商 SDK 类型渗透全部业务层"
+correction = "用 Protocol 隔离客户端，把消息、解析、校验、重试和业务逻辑分层"
+
+[[examples]]
+example_id = "ch14-llm-basics"
+source = "chapters/14-llm-application-basics/examples/ch14_llm_basics.py"
+python_spec = ">=3.12,<3.14"
+dependencies = []
+working_directory = "."
+input_preparation = "使用离线 RuleBasedModel，不需要 API Key"
+command = ["python", "chapters/14-llm-application-basics/examples/ch14_llm_basics.py"]
+timeout_seconds = 5
+expected_exit_code = 0
+stdout_contains = ["intent=refund confidence=0.92", "provider=protocol"]
+stderr_contains = []
+requirements = []
+
+[[boundaries]]
+boundary_id = "model-non-object"
+topic_id = "llm-boundary"
+input = "模型返回合法 JSON 数组"
+expected_behavior = "解析层拒绝非对象根节点"
+requirements = []
+
+[[exercises]]
+exercise_id = "CH14-EX01"
+title = "模型 JSON 输出解析"
+entry = "chapters/14-llm-application-basics/exercises/exercise_ch14.py"
+acceptance_id = "ACC-01"
+observable_goal = "解析纯 JSON 或代码围栏并校验必填字段"
+
+[[acceptances]]
+acceptance_id = "ACC-01"
+exercise_id = "CH14-EX01"
+kind = "command"
+
+[acceptances.command]
+command = ["python", "-m", "tools.check_exercise", "--chapter", "14"]
+timeout_seconds = 20
+expected_exit_code = 0
+expected_output = ["passed"]

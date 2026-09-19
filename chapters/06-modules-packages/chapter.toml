@@ -1,0 +1,55 @@
+chapter_id = "CH06"
+requirements = []
+
+[[topics]]
+topic_id = "modules-packages"
+title = "包与公开 API"
+comparison_anchor = "compare-modules-packages"
+requirements = []
+
+[[comparison_cards]]
+topic_id = "modules-packages"
+shared_purpose = "组织代码并控制对外可用的名称"
+observable_difference = "Python 模块本身就是对象，导入语句会执行模块顶层代码"
+python_use_case = "用包拆分领域，并在 __init__.py 暴露稳定入口"
+java_pitfall = "依赖 Java 的目录即包直觉，忽略导入路径和执行入口"
+correction = "从仓库根目录运行模块，显式区分导入和脚本执行"
+
+[[examples]]
+example_id = "ch06-modules"
+source = "chapters/06-modules-packages/examples/ch06_modules.py"
+python_spec = ">=3.12,<3.14"
+dependencies = []
+working_directory = "."
+input_preparation = "无需输入"
+command = ["python", "chapters/06-modules-packages/examples/ch06_modules.py"]
+timeout_seconds = 5
+expected_exit_code = 0
+stdout_contains = ["public_api=30.00", "module_name=__main__"]
+stderr_contains = []
+requirements = []
+
+[[boundaries]]
+boundary_id = "import-without-side-effects"
+topic_id = "modules-packages"
+input = "仅导入 order_tools"
+expected_behavior = "不执行示例 main，只暴露 gross_total"
+requirements = []
+
+[[exercises]]
+exercise_id = "CH06-EX01"
+title = "稳定订单编号 API"
+entry = "chapters/06-modules-packages/exercises/exercise_ch06.py"
+acceptance_id = "ACC-01"
+observable_goal = "规范化前缀并格式化固定宽度序号"
+
+[[acceptances]]
+acceptance_id = "ACC-01"
+exercise_id = "CH06-EX01"
+kind = "command"
+
+[acceptances.command]
+command = ["python", "-m", "tools.check_exercise", "--chapter", "06"]
+timeout_seconds = 20
+expected_exit_code = 0
+expected_output = ["passed"]

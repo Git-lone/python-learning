@@ -124,12 +124,12 @@ def _manifest_text(
         (
             """[[examples]]
 example_id = "example-main"
-source = "learning/chapters/01-demo/examples/main.py"
+source = "chapters/01-demo/examples/main.py"
 python_spec = ">=3.12,<3.14"
 dependencies = []
 working_directory = "."
 input_preparation = "无需准备"
-command = ["python", "learning/chapters/01-demo/examples/main.py"]
+command = ["python", "chapters/01-demo/examples/main.py"]
 timeout_seconds = 5
 expected_exit_code = 0
 stdout_contains = ["完成"]
@@ -138,7 +138,7 @@ requirements = ["2.7"]""",
             '''[[exercises]]
 exercise_id = "CH01-EX01"
 title = "对照练习"
-entry = "learning/chapters/01-demo/exercises/exercise_01.py"
+entry = "chapters/01-demo/exercises/exercise_01.py"
 acceptance_id = "ACC-01"
 observable_goal = "验证等价结果"''',
             '''[[acceptances]]
@@ -232,7 +232,7 @@ def transform(values):
 
 
 def _prepare_repository(root: Path) -> tuple[Path, Path]:
-    chapter = root / "learning/chapters/01-demo"
+    chapter = root / "chapters/01-demo"
     (chapter / "examples").mkdir(parents=True)
     (chapter / "exercises").mkdir()
     (chapter / "examples/main.py").write_text('print("完成")\n', encoding="utf-8")
@@ -259,8 +259,8 @@ def test_topics_and_comparison_cards_correspond_completely(
             1,
             "CH01",
             "测试章节",
-            Path("learning/chapters/01-demo"),
-            Path("learning/chapters/01-demo/README.md"),
+            Path("chapters/01-demo"),
+            Path("chapters/01-demo/README.md"),
             (),
         )
         document_issues = validate_chapter_template(readme_path, "CH01")

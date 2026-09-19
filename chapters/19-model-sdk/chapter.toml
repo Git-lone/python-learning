@@ -1,0 +1,55 @@
+chapter_id = "CH19"
+requirements = []
+
+[[topics]]
+topic_id = "model-sdk"
+title = "真实模型 SDK 与流式边界"
+comparison_anchor = "compare-model-sdk"
+requirements = []
+
+[[comparison_cards]]
+topic_id = "model-sdk"
+shared_purpose = "统一模型调用边界并区分部分输出和完成输出"
+observable_difference = "Python async generator 必须异步消费；Java 常以响应式流或回调表达"
+python_use_case = "异步 token 流、限时调用和 provider 适配"
+java_pitfall = "直接 join 异步生成器，或把 EOF 当成功"
+correction = "async for 消费事件，仅在 completed 后记为成功"
+
+[[examples]]
+example_id = "ch19-demo"
+source = "chapters/19-model-sdk/examples/ch19_demo.py"
+python_spec = ">=3.12,<3.14"
+dependencies = ["pyproject.toml"]
+working_directory = "."
+input_preparation = "安装项目依赖，无需 API Key；仅使用合成数据"
+command = ["python", "chapters/19-model-sdk/examples/ch19_demo.py"]
+timeout_seconds = 30
+expected_exit_code = 0
+stdout_contains = ["OFFLINE evidence:","kb-reset"]
+stderr_contains = []
+requirements = []
+
+[[boundaries]]
+boundary_id = "model-sdk-failure"
+topic_id = "model-sdk"
+input = "正常输入、缺失字段、非法输入或重复请求"
+expected_behavior = "async for 消费事件，仅在 completed 后记为成功"
+requirements = []
+
+[[exercises]]
+exercise_id = "CH19-EX01"
+title = "解析真实 usage，拒绝伪造零用量"
+entry = "chapters/19-model-sdk/exercises/exercise_ch19.py"
+acceptance_id = "ACC-01"
+observable_goal = "async for 消费事件，仅在 completed 后记为成功"
+
+[[acceptances]]
+acceptance_id = "ACC-01"
+exercise_id = "CH19-EX01"
+kind = "command"
+
+[acceptances.command]
+command = ["python", "-m", "tools.check_exercise", "--chapter", "19"]
+timeout_seconds = 30
+expected_exit_code = 0
+expected_output = ["passed"]

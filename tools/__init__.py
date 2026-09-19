@@ -1,1 +1,1 @@
-"""课程内容验证与示例执行工具。"""
+"""Course runners shared by the chapter manifests."""
