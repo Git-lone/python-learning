@@ -90,6 +90,7 @@ class RunEvent:
 class MemoryCheckpointStore:
     """练习使用内存快照；接口形状可以替换为数据库实现。"""
 
+    # 本章恢复仅限当前进程，跨进程持久化由 CH21 演示；不用在这道练习中接数据库。
     states: dict[str, RunState] = field(default_factory=dict)
 
     def save(self, state: RunState) -> None:

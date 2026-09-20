@@ -41,10 +41,12 @@ def main() -> int:
         content = call.arguments.get("content")
         if not isinstance(content, str):
             raise ValueError("content must be a string")
-        # call_id 是幂等键；恢复或重试不会逻辑上重复发布同一份周报。
+        # call_id 演示幂等：同一进程内不重复插入，但不会校验同一键的正文是否变更。
+        # 跨进程持久化与载荷冲突校验见 CH21，不能把内存字典当成生产幂等存储。
         published.setdefault(call.call_id, content)
         return "published"
 
+    # 这里只演示同一进程内的暂停/恢复；进程退出后内存检查点就丢失。
     store = MemoryCheckpointStore()
     sink = ListEventSink()
     harness = AgentHarness(
@@ -58,6 +60,7 @@ def main() -> int:
         limits=HarnessLimits(max_steps=3, max_tool_calls=1),
         store=store,
         sink=sink,
+        # 文本匹配仅用于演示；真实验收应查询业务状态，不能只相信模型声称已完成。
         verifier=lambda answer: None if answer == "周报已发布" else "周报尚未发布",
     )
 

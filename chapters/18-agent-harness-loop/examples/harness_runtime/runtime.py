@@ -69,6 +69,7 @@ class AgentHarness:
             raise KeyError(f"run not found: {run_id}")
         if state.status not in {"running", "waiting_approval"}:
             raise ValueError(f"run cannot be resumed from status: {state.status}")
+        # replace 创建新的 dataclass 实例，保留原有历史和预算，不修改旧状态的字段。
         state = replace(state, status="running")
         self._record(state, "run_resumed", "checkpoint loaded")
         return self._drive(state, approvals or {})
@@ -77,7 +78,7 @@ class AgentHarness:
         """持续推进状态，直到完成、失败或需要人工审批。"""
 
         while True:
-            # 恢复时先处理已持久化的调用，不能让模型重新生成另一个动作。
+            # 恢复时先处理检查点中保存的调用，不能让模型重新生成另一个动作。
             if state.pending_call is not None:
                 state = self._handle_call(state, state.pending_call, approvals)
                 if state.status != "running":
@@ -91,6 +92,7 @@ class AgentHarness:
             if isinstance(action, FinalAnswer):
                 state = replace(state, step=state.step + 1)
                 self._record(state, "model_action", "final_answer")
+                # None 才是通过；失败反馈写入历史，让模型在剩余预算内继续处理。
                 feedback = self._verifier(action.text)
                 if feedback is None:
                     completed = replace(
@@ -109,7 +111,7 @@ class AgentHarness:
             if not isinstance(action, ToolCall):
                 return self._fail(state, "model returned an invalid action")
 
-            # 在执行前持久化动作，因此进程重启后仍可从同一个 call_id 恢复。
+            # 执行前保存动作；只有接入持久化存储，进程重启后才能恢复同一个 call_id。
             state = replace(
                 state,
                 step=state.step + 1,
@@ -128,6 +130,7 @@ class AgentHarness:
             return self._fail(state, "tool call budget exhausted")
 
         if spec.requires_approval:
+            # 无决定(None)、明确拒绝(False)、同意(True)是三种状态，不能合并成真假判断。
             decision = approvals.get(call.call_id)
             if decision is None:
                 paused = replace(state, status="waiting_approval")
@@ -138,8 +141,10 @@ class AgentHarness:
 
         try:
             # 即使工具抛错，也会消耗一次调用预算；外部副作用应使用 call_id 幂等。
+            # 工具成功与下一次保存状态之间仍可能中断，检查点本身不保证恰好执行一次。
             result = spec.handler(call)
         except Exception as error:
+            # 示例保留错误文本；真实模型上下文中的错误信息也要脱敏，不只是日志。
             return self._observe(
                 replace(state, tool_calls=state.tool_calls + 1),
                 call,
@@ -163,6 +168,7 @@ class AgentHarness:
             result=result,
             error=error,
         )
+        # 工具结果入历史后清空 pending_call，下一轮才允许请求新的模型动作。
         running = replace(
             state,
             status="running",

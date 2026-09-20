@@ -10,4 +10,5 @@ def fixed_discount(price: Decimal, amount: Decimal) -> Decimal:
 
 def test_discount_never_becomes_negative() -> None:
     """补充 Arrange/Act/Assert，并验证折扣大于价格的边界。"""
+    # 需要补的是测试，不是修改上面的被测函数；用明确的边界输入证明价格不会降为负数。
     raise NotImplementedError("请完成 CH11-EX01")

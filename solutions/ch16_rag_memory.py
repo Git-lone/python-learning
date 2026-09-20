@@ -11,6 +11,7 @@ class Document:
 
 
 def _tokens(text: str) -> set[str]:
+    # 去重后统计重叠词数；这是英文词法基线，不衡量词频、中文分词或语义相似度。
     return set(re.findall(r"[a-z0-9]+", text.lower()))
 
 

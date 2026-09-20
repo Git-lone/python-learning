@@ -18,6 +18,7 @@ class AgentModel(Protocol):
 
 
 ToolHandler = Callable[[ToolCall], object]
+# 返回 None 表示验收通过，返回字符串表示需要反馈给模型的失败原因。
 CompletionVerifier = Callable[[str], str | None]
 
 
@@ -26,6 +27,7 @@ class ToolSpec:
     """工具实现与执行策略，策略不交给模型决定。"""
 
     handler: ToolHandler
+    # 审批策略由应用注册工具时指定，而不是接受模型参数中的自报权限。
     requires_approval: bool = False
 
 

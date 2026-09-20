@@ -1,5 +1,6 @@
 """从包的公开 API 导入名称。"""
 
+# 调用方只依赖包公开的名称，不必知道计算逻辑放在 pricing 子模块中。
 from order_tools import gross_total
 
 

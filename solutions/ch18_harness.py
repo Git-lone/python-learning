@@ -13,6 +13,7 @@ class ToolCall:
 
     call_id: str
     name: str
+    # frozen 与 Mapping 都不提供深度冻结，工具处理器不应修改传入的参数对象。
     arguments: Mapping[str, object]
 
 
@@ -38,6 +39,7 @@ Action = ToolCall | FinalAnswer
 HistoryEvent = ToolCall | ToolObservation | VerificationObservation
 RunStatus = Literal["running", "waiting_approval", "completed", "failed"]
 ToolHandler = Callable[[ToolCall], object]
+# 验收器返回 None 表示通过，字符串则作为失败反馈进入下一轮模型上下文。
 CompletionVerifier = Callable[[str], str | None]
 
 
@@ -88,6 +90,7 @@ class RunEvent:
 
 @dataclass(slots=True)
 class MemoryCheckpointStore:
+    # 只支持同一进程内恢复；跨进程恢复必须换用磁盘/数据库存储，见 CH21。
     states: dict[str, RunState] = field(default_factory=dict)
 
     def save(self, state: RunState) -> None:
@@ -106,6 +109,7 @@ class ListEventSink:
 
 
 def _accept_any_answer(answer: str) -> str | None:
+    # 默认不验收业务效果；真实任务应注入可查询、可验证的完成条件。
     return None
 
 
@@ -145,6 +149,7 @@ class AgentHarness:
             raise KeyError(f"run not found: {run_id}")
         if state.status not in {"running", "waiting_approval"}:
             raise ValueError(f"run cannot be resumed from status: {state.status}")
+        # 不可变状态通过 replace 生成新实例，恢复时沿用历史和已经消耗的预算。
         state = replace(state, status="running")
         self._record(state, "run_resumed", "checkpoint loaded")
         return self._drive(state, approvals or {})
@@ -183,7 +188,7 @@ class AgentHarness:
             if not isinstance(action, ToolCall):
                 return self._fail(state, "model returned an invalid action")
 
-            # 调用在执行前持久化，暂停或进程重启都保留同一个 call_id。
+            # 执行前保存调用，使暂停后保留同一个 call_id；内存实现不能跨进程恢复。
             state = replace(
                 state,
                 step=state.step + 1,
@@ -202,6 +207,7 @@ class AgentHarness:
             return self._fail(state, "tool call budget exhausted")
 
         if spec.requires_approval:
+            # 未收到决定时暂停；明确拒绝时形成观察，且绝不能调用处理器。
             decision = approvals.get(call.call_id)
             if decision is None:
                 paused = replace(state, status="waiting_approval")
@@ -211,6 +217,7 @@ class AgentHarness:
                 return self._observe(state, call, None, "approval denied")
 
         try:
+            # 外部副作用与状态保存之间存在中断窗口，工具自身仍需按 call_id 实现幂等。
             result = spec.handler(call)
         except Exception as error:
             # 已进入 handler 的失败尝试同样计入工具预算。

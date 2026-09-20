@@ -49,8 +49,10 @@ def run_agent(
     if max_steps < 1:
         raise ValueError("max_steps must be positive")
     history: list[Event] = []
+    # 一步指一次模型决策，返回最终答案也占一步，不等于工具调用次数。
     for step in range(1, max_steps + 1):
         # 模型只能提出动作；循环仍由确定性代码掌握控制权。
+        # tuple 防止模型增删这份历史序列，但 arguments 等嵌套对象并未深度冻结。
         action = model.next_action(tuple(history))
         if isinstance(action, FinalAnswer):
             return AgentResult(action.text, tuple(history), step)
@@ -64,6 +66,7 @@ def run_agent(
             result = handler(action.arguments)
         except Exception as error:
             # 工具错误进入轨迹，模型下一步可以选择修正参数或结束。
+            # 教学示例直接记录异常文本；接入真实服务前需对错误信息脱敏。
             history.append(ToolObservation(action.name, None, str(error)))
         else:
             history.append(ToolObservation(action.name, result))
@@ -81,6 +84,7 @@ class DemoModel:
 
 
 def add(arguments: Mapping[str, object]) -> int:
+    # 此处简化校验会接受 bool，因为 bool 是 int 子类；严格版本见 CH15 的 add。
     left = arguments.get("left")
     right = arguments.get("right")
     if not isinstance(left, int) or not isinstance(right, int):

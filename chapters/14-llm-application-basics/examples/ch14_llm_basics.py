@@ -22,6 +22,7 @@ class RuleBasedModel:
     def complete(self, messages: Sequence[Message]) -> str:
         # 离线替身保持模型端口真实，同时让测试结果完全确定。
         text = messages[-1].content.lower()
+        # 这里是关键词规则，0.92 也是固定样例值，不代表真实模型置信度或效果。
         intent = "refund" if "refund" in text else "other"
         return json.dumps({"intent": intent, "confidence": 0.92})
 
@@ -36,6 +37,7 @@ def classify(model: ModelClient, user_text: str) -> dict[str, object]:
     payload = json.loads(model.complete(messages))
     if not isinstance(payload, dict):
         raise ValueError("model response must be a JSON object")
+    # 本章只校验根节点；字段是否齐全、类型和值域是否合法，需要后续结构化校验。
     return payload
 
 

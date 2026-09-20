@@ -15,6 +15,7 @@ from langgraph.types import Command, interrupt
 
 
 class State(TypedDict, total=False):
+    # total=False 允许节点只返回更新字段；TypedDict 本身不做运行时数据校验。
     request_id: str
     draft: str
     approved: bool
@@ -32,6 +33,8 @@ class Ledger:
 
     @contextmanager
     def _connect(self) -> Iterator[sqlite3.Connection]:
+        # yield 把连接交给 with 的调用方；正常退出提交，异常回滚，最后始终关闭。
+        # sqlite3.Connection 的 with 只管事务，不会自动 close。
         db = sqlite3.connect(self.path, timeout=5)
         try:
             with db:
@@ -42,8 +45,9 @@ class Ledger:
     def publish(self, request_id: str, body: str) -> str:
         if not request_id or not body:
             raise ValueError("request_id and body are required")
-        # The unique key and payload check live in the same business transaction.
+        # 唯一键与载荷校验放在同一业务事务中；重复键只允许重放相同正文。
         with self._connect() as db:
+            # 使用参数绑定，不把 request_id 或正文拼接进 SQL。
             db.execute("INSERT OR IGNORE INTO deliveries VALUES (?, ?)", (request_id, body))
             saved = db.execute(
                 "SELECT body FROM deliveries WHERE request_id=?", (request_id,)
@@ -59,12 +63,14 @@ class Ledger:
 
 def build_graph(checkpointer: SqliteSaver, ledger: Ledger) -> Any:
     def approve(state: State) -> State:
+        # interrupt 保存暂停点；恢复时节点可能重新执行，因此之前不要放不可重放副作用。
         answer = interrupt({"request_id": state["request_id"], "draft": state["draft"]})
         if not isinstance(answer, bool):
             raise ValueError("approval must be a boolean")
         return {"approved": answer}
 
     def publish(state: State) -> State:
+        # 检查点与业务写入不在同一事务；发布后若保存状态失败，重放靠 ledger 幂等兜底。
         result = (
             ledger.publish(state["request_id"], state["draft"]) if state["approved"] else "rejected"
         )
@@ -87,6 +93,7 @@ def main() -> None:
     args = parser.parse_args()
     args.directory.mkdir(parents=True, exist_ok=True)
     ledger = Ledger(args.directory / "ledger.sqlite")
+    # 相同 thread_id 定位同一次工作流；更换 ID 是新任务，不是恢复旧任务。
     config = {"configurable": {"thread_id": args.thread}}
     with SqliteSaver.from_conn_string(str(args.directory / "checkpoints.sqlite")) as saver:
         graph = build_graph(saver, ledger)
@@ -98,6 +105,7 @@ def main() -> None:
         else:
             if not state.next:
                 parser.error("thread has no pending approval")
+            # resume 的布尔值成为 interrupt 的返回值，而不是重新提交初始输入。
             result = graph.invoke(Command(resume=args.action == "approve"), config)
         print("waiting_approval" if result.get("__interrupt__") else result["result"])
         print(f"deliveries={ledger.count()}")

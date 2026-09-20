@@ -13,6 +13,7 @@ class RuntimeConfig:
 
 
 def load_config(environ: Mapping[str, str]) -> RuntimeConfig:
+    # 注入 Mapping 而不直接读取 os.environ，测试可传普通字典且不污染进程环境。
     # 外部配置只在边界解析一次，内部代码始终接收合法类型。
     environment = environ.get("APP_ENV", "dev").strip() or "dev"
     level_name = environ.get("APP_LOG_LEVEL", "INFO").upper()
@@ -24,6 +25,7 @@ def load_config(environ: Mapping[str, str]) -> RuntimeConfig:
 
 def main() -> int:
     config = load_config({"APP_ENV": "dev", "APP_LOG_LEVEL": "info"})
+    # StringIO 是内存文本流，便于断言日志内容，无需创建或清理日志文件。
     stream = io.StringIO()
     # 示例使用独立 Logger，避免修改导入者的全局日志配置。
     logger = logging.Logger("course", config.log_level)

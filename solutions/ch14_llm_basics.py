@@ -17,6 +17,7 @@ def parse_model_object(text: str, required: set[str]) -> dict[str, object]:
         raise ValueError("model output is not valid JSON") from error
     if not isinstance(payload, dict):
         raise ValueError("model output must be a JSON object")
+    # 这里只检查字段存在，不保证值的类型或含义正确；业务 Schema 还需独立校验。
     # 排序让错误消息稳定，便于测试和日志聚合。
     missing = sorted(required - payload.keys())
     if missing:

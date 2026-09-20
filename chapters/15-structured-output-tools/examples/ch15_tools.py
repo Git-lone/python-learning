@@ -21,6 +21,7 @@ class ToolRegistry:
             handler = self._tools[name]
         except KeyError as error:
             raise KeyError(f"unknown tool: {name}") from error
+        # 注册表负责名称白名单；参数校验仍由具体工具负责，异常由上层循环处理。
         return handler(arguments)
 
 

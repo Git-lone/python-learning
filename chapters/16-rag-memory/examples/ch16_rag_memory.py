@@ -12,6 +12,7 @@ class Document:
 
 
 def tokens(text: str) -> set[str]:
+    # set 忽略重复词，只衡量词项是否重叠；当前正则不处理中文，也没有语义理解。
     return set(re.findall(r"[a-z0-9]+", text.lower()))
 
 
@@ -36,7 +37,7 @@ def main() -> int:
         Document("tests", "Use pytest for automated tests"),
     ]
     top = retrieve("how to close a file", documents, limit=1)
-    # maxlen 自动淘汰最旧消息，防止上下文无限增长。
+    # maxlen 自动淘汰最旧消息；它限制的是消息条数，不是 token 总数。
     memory: deque[str] = deque(maxlen=2)
     memory.extend(["old", "user: close file", "assistant: use with"])
     print(f"top={top[0].document_id} memory={len(memory)}")

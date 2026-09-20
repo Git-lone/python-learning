@@ -49,8 +49,9 @@ def run_agent(
     if max_steps < 1:
         raise ValueError("max_steps must be positive")
     history: list[Event] = []
+    # 预算按模型决策计数，最终答案也占一步，工具错误后继续同样会消耗剩余预算。
     for step in range(1, max_steps + 1):
-        # 每轮给模型不可变快照，避免模型适配器篡改执行历史。
+        # tuple 限制历史序列的增删，不会冻结事件中的嵌套参数对象。
         action = model.next_action(tuple(history))
         if isinstance(action, FinalAnswer):
             return AgentResult(action.text, tuple(history), step)

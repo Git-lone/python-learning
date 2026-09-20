@@ -12,6 +12,7 @@ class DemoHandler(BaseHTTPRequestHandler):
         body = json.dumps({"service": "catalog", "items": 2}).encode("utf-8")
         self.send_response(200)
         self.send_header("Content-Type", "application/json; charset=utf-8")
+        # HTTP 长度按编码后的字节数计算，不能用原始字符串的字符数代替。
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
         self.wfile.write(body)
@@ -27,6 +28,7 @@ def main() -> int:
     thread.start()
     try:
         port = server.server_address[1]
+        # timeout 约束阻塞网络操作，不是整个业务流程的统一截止时间。
         with urlopen(f"http://127.0.0.1:{port}/catalog", timeout=2) as response:
             payload = json.loads(response.read().decode("utf-8"))
             status = response.status

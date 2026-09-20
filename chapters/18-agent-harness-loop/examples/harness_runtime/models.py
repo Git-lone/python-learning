@@ -13,6 +13,7 @@ class ToolCall:
 
     call_id: str
     name: str
+    # Mapping 是只读接口提示，frozen 也只限制字段赋值；嵌套字典没有被深度冻结。
     arguments: Mapping[str, object]
 
 
@@ -42,6 +43,7 @@ class VerificationObservation:
 
 Action = ToolCall | FinalAnswer
 HistoryEvent = ToolCall | ToolObservation | VerificationObservation
+# Literal 辅助静态检查，合法状态迁移仍必须由运行时代码保证。
 RunStatus = Literal["running", "waiting_approval", "completed", "failed"]
 
 
@@ -66,9 +68,11 @@ class RunState:
     run_id: str
     objective: str
     status: RunStatus = "running"
+    # step 统计模型决策，tool_calls 统计真正进入处理器的尝试，两种预算不能混用。
     step: int = 0
     tool_calls: int = 0
     history: tuple[HistoryEvent, ...] = ()
+    # 已有决策但尚未完成的工具调用；恢复时优先处理它，避免再次让模型生成动作。
     pending_call: ToolCall | None = None
     answer: str | None = None
     error: str | None = None
