@@ -1,8 +1,9 @@
 """用协议隔离模型供应商，并把模型文本视作不可信输入。"""
 
+import argparse
+import json
 from collections.abc import Sequence
 from dataclasses import dataclass
-import json
 from typing import Literal, Protocol
 
 Role = Literal["system", "user", "assistant"]
@@ -42,6 +43,23 @@ def classify(model: ModelClient, user_text: str) -> dict[str, object]:
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser(description="离线演示模型端口与关键词基线")
+    parser.add_argument("--cases", action="store_true", help="运行四条教学对照消息")
+    args = parser.parse_args()
+
+    if args.cases:
+        # 对照人工标签观察漏判和误判；这些样本用于教学，不代表真实准确率。
+        cases = [
+            ("Please refund order SO-1", "refund"),
+            ("I was charged twice. Can I get my money back?", "refund"),
+            ("Please do not refund order SO-1", "other"),
+            ("Where is my invoice?", "other"),
+        ]
+        for user_text, expected in cases:
+            actual = classify(RuleBasedModel(), user_text)["intent"]
+            print(f"expected={expected} actual={actual} text={user_text}")
+        return 0
+
     result = classify(RuleBasedModel(), "Please refund order SO-1")
     print(f"intent={result['intent']} confidence={result['confidence']}")
     print("provider=protocol")

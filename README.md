@@ -14,6 +14,8 @@
 - [本次验证记录与未测范围](career/VERIFICATION.md)
 - [章节索引](INDEX.md)
 
+每章有学习目标、Java 对照、示例、练习和学案。第 14 章现已改为[四节连续的 LLM 应用课](chapters/14-llm-application-basics/README.md)，配有预测、运行记录和评测学案；其他章节的教案仍是初稿，尚未达到同样的课程深度。后续改写遵循[课程写作基准](COURSE_DESIGN.md)，可从[第 1 章](chapters/01-basics/README.md)按顺序学习。
+
 ## 安装与运行
 
 Windows PowerShell，在项目根执行。已经创建好的本机虚拟环境可以直接使用，不必重复创建：
