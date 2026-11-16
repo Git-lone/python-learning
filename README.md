@@ -7,6 +7,8 @@
 ## 先从这里开始
 
 - [按能力安排的学习路线](career/ROADMAP.md)
+- [AI 求职：完整功能实现与项目经历详解（可直接转交其他 AI）](career/project-experience/AI应用项目_实现机制与项目经历详解.md)
+- [AI 应用开发：近期项目经历与技术亮点](career/project-experience/AI应用开发_项目经历精炼.md)
 - [真实面经原帖、日期与题目映射](career/INTERVIEW_EXPERIENCES.md)
 - [技术追问、系统设计与模拟面试](career/INTERVIEW_PRACTICE.md)
 - [作品集与诚实的简历表述](career/PORTFOLIO.md)
