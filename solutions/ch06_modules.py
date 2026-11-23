@@ -2,6 +2,8 @@
 
 
 def build_order_id(prefix: str, sequence: int) -> str:
+    """用规范化前缀和非负序号生成展示编号；本函数不负责分配唯一序号。"""
+
     # 先规范化再校验，才能拒绝仅含空白的前缀。
     normalized = prefix.strip().upper()
     if not normalized:

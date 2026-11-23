@@ -1,4 +1,8 @@
-"""Small deterministic retrieval regression set; not a production benchmark."""
+"""第 22 章检索回归入口：用三条可回答问题和两条负例检查确定性检索行为。
+
+真值是人工指定的文档 ID，评测只调用 retrieve，不调用模型。指标可用于比较本课程
+修改前后的结果，但样本少且是合成数据，不能外推为线上准确率或端到端问答成功率。
+"""
 
 import json
 
@@ -13,6 +17,12 @@ CASES = (
 
 
 def evaluate() -> dict[str, float | int | str]:
+    """汇总可回答样本的 Recall@3/MRR@3，并单独报告负例中的正确拒答数量。
+
+    两个排名指标只以 CASES 中的可回答问题为分母；correct_abstentions 是负例
+    计数，不是已经除以样本数的比例。分开报告，避免把拒答样本混入召回率口径。
+    """
+
     recalls, ranks = [], []
     for question, tenant, relevant in CASES:
         ids = [hit.document.id for hit in retrieve(question, tenant, 3)]

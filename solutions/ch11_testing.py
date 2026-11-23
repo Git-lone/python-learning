@@ -4,6 +4,8 @@ from decimal import Decimal
 
 
 def fixed_discount(price: Decimal, amount: Decimal) -> Decimal:
+    """减去固定优惠金额并把结果下限设为零，供下方边界测试验证。"""
+
     return max(Decimal("0"), price - amount)
 
 

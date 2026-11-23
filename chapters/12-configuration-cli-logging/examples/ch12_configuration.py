@@ -1,4 +1,4 @@
-"""环境配置、结构化日志与显式依赖。"""
+"""环境配置、格式化日志与显式依赖；本例日志为普通文本，不是 JSON 日志。"""
 
 from collections.abc import Mapping
 from dataclasses import dataclass
@@ -8,11 +8,19 @@ import logging
 
 @dataclass(frozen=True, slots=True)
 class RuntimeConfig:
+    """保存解析后的环境名称与数字日志级别，供应用直接使用。"""
+
     environment: str
     log_level: int
 
 
 def load_config(environ: Mapping[str, str]) -> RuntimeConfig:
+    """解析配置映射，缺省环境为 dev、日志级别为 INFO，非法级别抛 ValueError。
+
+    这是显式构造配置对象的示例，没有依赖 Java/Spring 式自动配置注入。
+    环境名称去除首尾空白，空值回退为 dev，没有限定为某一组部署环境。
+    """
+
     # 注入 Mapping 而不直接读取 os.environ，测试可传普通字典且不污染进程环境。
     # 外部配置只在边界解析一次，内部代码始终接收合法类型。
     environment = environ.get("APP_ENV", "dev").strip() or "dev"

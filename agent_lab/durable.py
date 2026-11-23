@@ -1,4 +1,9 @@
-"""SQLite-backed approval workflow; deliberately no real external write."""
+"""第 21 章持久化工作流：草稿暂停审批，跨进程恢复，再幂等写入本地业务账本。
+
+阅读顺序是 State → Ledger → build_graph → main。checkpoints.sqlite 保存流程
+进度，ledger.sqlite 保存模拟发布结果，二者职责与事务边界不同。本例不调用模型、
+不向外部系统发消息；“发布”仅是 SQLite 插入，不能据此宣称远程写入恰好执行一次。
+"""
 
 from __future__ import annotations
 
@@ -15,6 +20,8 @@ from langgraph.types import Command, interrupt
 
 
 class State(TypedDict, total=False):
+    """图节点共享的状态形状，类似 Java 状态 DTO，但运行时仍是普通字典。"""
+
     # total=False 允许节点只返回更新字段；TypedDict 本身不做运行时数据校验。
     request_id: str
     draft: str
@@ -23,7 +30,15 @@ class State(TypedDict, total=False):
 
 
 class Ledger:
+    """以 request_id 为唯一键的本地发布账本，演示业务副作用如何抵御重放。
+
+    同一请求、相同正文重复发布会复用已有结果；同一请求换了正文则报错。
+    数据库唯一键承担去重，不能仅靠进程内布尔标记，因为进程重启会丢失内存状态。
+    """
+
     def __init__(self, path: Path) -> None:
+        """记录数据库位置并确保表存在；不清空已有账本，以便后续进程继续使用。"""
+
         self.path = path
         with self._connect() as db:
             db.execute(
@@ -33,6 +48,12 @@ class Ledger:
 
     @contextmanager
     def _connect(self) -> Iterator[sqlite3.Connection]:
+        """提供短事务连接，类似 try-with-resources 加提交/回滚的组合。
+
+        @contextmanager 将单次 yield 的生成器变成 with 资源管理器；连接不是
+        长驻的共享会话。SQLite 的 timeout=5 是等待锁的时间，不是整个流程超时。
+        """
+
         # yield 把连接交给 with 的调用方；正常退出提交，异常回滚，最后始终关闭。
         # sqlite3.Connection 的 with 只管事务，不会自动 close。
         db = sqlite3.connect(self.path, timeout=5)
@@ -43,6 +64,12 @@ class Ledger:
             db.close()
 
     def publish(self, request_id: str, body: str) -> str:
+        """提交一次模拟发布；重复请求可以重放，幂等键与正文冲突则拒绝。
+
+        INSERT OR IGNORE 只解决重复插入，随后的正文比较才防止错误复用幂等键。
+        这里没有对远程服务做事务承诺；真实外部发布还需对方支持幂等或另做补偿。
+        """
+
         if not request_id or not body:
             raise ValueError("request_id and body are required")
         # 唯一键与载荷校验放在同一业务事务中；重复键只允许重放相同正文。
@@ -57,12 +84,21 @@ class Ledger:
         return f"published:{request_id}"
 
     def count(self) -> int:
+        """返回账本中的唯一发布数量，用来观察重放是否产生重复记录。"""
+
         with self._connect() as db:
             return int(db.execute("SELECT count(*) FROM deliveries").fetchone()[0])
 
 
 def build_graph(checkpointer: SqliteSaver, ledger: Ledger) -> Any:
+    """组装审批、发布两个节点，并把流程持久化交给传入的 checkpointer。
+
+    节点返回状态增量，框架负责合并和记录进度。checkpointer 使流程可恢复，
+    ledger 使副作用可重放；这两项能力需要分别实现，不能把检查点当成业务事务。
+    """
+
     def approve(state: State) -> State:
+        # 审批节点把待确认内容交给调用方，恢复值必须严格为布尔值，避免字符串 "false" 等歧义。
         # interrupt 保存暂停点；恢复时节点可能重新执行，因此之前不要放不可重放副作用。
         answer = interrupt({"request_id": state["request_id"], "draft": state["draft"]})
         if not isinstance(answer, bool):
@@ -70,6 +106,7 @@ def build_graph(checkpointer: SqliteSaver, ledger: Ledger) -> Any:
         return {"approved": answer}
 
     def publish(state: State) -> State:
+        # 拒绝仍会进入该节点，但只写回 rejected 状态，不插入发布账本。
         # 检查点与业务写入不在同一事务；发布后若保存状态失败，重放靠 ledger 幂等兜底。
         result = (
             ledger.publish(state["request_id"], state["draft"]) if state["approved"] else "rejected"
@@ -86,6 +123,12 @@ def build_graph(checkpointer: SqliteSaver, ledger: Ledger) -> Any:
 
 
 def main() -> None:
+    """以命令行模拟提交人和审批人的两次操作，每次启动都从磁盘读取同一流程。
+
+    start 新建并暂停，approve/reject 用 Command 恢复已有暂停点。本例未实现
+    审批人身份认证或多工作进程协调，这些不能由持久化检查点自动获得。
+    """
+
     parser = argparse.ArgumentParser()
     parser.add_argument("action", choices=["start", "approve", "reject"])
     parser.add_argument("--directory", type=Path, required=True)

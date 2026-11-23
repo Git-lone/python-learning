@@ -6,6 +6,11 @@ class OrderInputError(ValueError):
 
 
 def parse_quantity(raw: str) -> int:
+    """把整数字符串转换为正数量；转换失败或非正数都抛出 OrderInputError。
+
+    Python 没有 Java 的 checked exception 声明；可预期错误需要在接口说明中交代。
+    """
+
     try:
         quantity = int(raw)
     except ValueError as error:

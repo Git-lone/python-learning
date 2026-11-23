@@ -6,6 +6,8 @@ from tempfile import TemporaryDirectory
 
 
 def main() -> int:
+    """完成临时文件写入、JSON 读取及自动清理，观察文件何时关闭。"""
+    # with 对应 Java try-with-resources 的资源作用域，不要求在方法结束时才释放。
     # 外层 with 管理临时目录的生命周期，离开作用域后清理示例文件。
     with TemporaryDirectory() as directory:
         # Path 的 / 是路径拼接运算，不用手工处理 Windows 和 Unix 的分隔符。

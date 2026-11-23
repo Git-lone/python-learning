@@ -1,3 +1,9 @@
+"""第 20 章 MCP 客户端：启动服务进程，发现工具，验证一次成功与一次业务失败。
+
+读 demo 时区分三层：进程/会话是否可用、工具调用是否成功、结果是否满足数据契约。
+这里确实经过 MCP stdio 通信，但没有模型参与工具选择，也没有远程鉴权流程。
+"""
+
 import asyncio
 import sys
 from pathlib import Path
@@ -8,6 +14,8 @@ from agent_lab.mcp_server import Ticket
 
 
 async def demo() -> None:
+    """在受限时间内完成 MCP 往返，并在离开上下文时结束会话和回收子进程。"""
+
     # 使用当前虚拟环境的解释器启动子进程，避免系统 Python 缺少 MCP 依赖。
     params = StdioServerParameters(
         command=sys.executable,
@@ -28,6 +36,7 @@ async def demo() -> None:
             ticket = Ticket.model_validate(result.structured_content)
             print(f"MCP tool={tool.name} status={ticket.status}")
             missing = await client.call_tool("ticket_status", {"ticket_id": "MISSING"})
+            # 错误请求的返回也是预期验收项；能连接服务并不代表工具一定能完成业务。
             assert missing.is_error
             print("MCP missing_ticket=handled")
 

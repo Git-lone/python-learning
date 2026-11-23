@@ -10,7 +10,11 @@ R = TypeVar("R")
 
 
 def trace(function: Callable[P, R]) -> Callable[P, R]:
-    """打印调用结果，同时保持被装饰函数的签名。"""
+    """包装一次函数调用，成功后打印结果并原样返回，异常则直接向上传播。
+
+    与 Java 方法拦截器类似，但这里输入和返回的都是函数对象。
+    ParamSpec 保留静态参数关系，wraps 保留原函数元数据；二者都不做运行时参数校验。
+    """
 
     # wraps 保留名称、文档等元数据；*args 和 **kwargs 分别转发位置参数与关键字参数。
     @wraps(function)
@@ -23,7 +27,10 @@ def trace(function: Callable[P, R]) -> Callable[P, R]:
 
 
 def make_multiplier(factor: int) -> Callable[[int], int]:
-    """返回捕获 factor 的闭包。"""
+    """返回一个单参数函数；它记住本次 factor，后续调用时再接收被乘数。
+
+    多次调用工厂会得到各自捕获参数的函数，不需要用全局变量保存倍率。
+    """
 
     # 外层调用结束后，返回的函数仍能访问捕获的 factor，这就是闭包。
     def multiply(value: int) -> int:

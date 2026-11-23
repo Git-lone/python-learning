@@ -7,6 +7,11 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True, slots=True)
 class Task:
+    """报告使用的任务值对象；外部 JSON 应通过 from_mapping 校验后构造。
+
+    dataclass 本身不会校验字段，直接调用 Task(...) 会绕过下面的输入检查。
+    """
+
     title: str
     owner: str
     estimate_minutes: int
@@ -14,7 +19,7 @@ class Task:
 
     @classmethod
     def from_mapping(cls, data: object, index: int) -> Task:
-        """把不可信 JSON 值转换为经过校验的 Task。"""
+        """校验单条 JSON 对象并清洗文本；index 用于错误定位，非法字段抛 ValueError。"""
         # JSON 解码可能得到列表、数字或 null；类型注解不会代替这些运行时检查。
         if not isinstance(data, dict):
             raise ValueError(f"task[{index}] must be an object")

@@ -6,6 +6,7 @@ from .model import Task
 
 
 def completion_rate(tasks: Sequence[Task]) -> float:
+    """按任务条数计算完成比例，范围为 0～1，不按预计工时加权。"""
     # 空任务集约定为 0%，同时避免除零；这属于业务约定而不是数学推导。
     if not tasks:
         return 0.0
@@ -24,6 +25,7 @@ def pending_tasks(tasks: Iterable[Task]) -> Iterable[Task]:
 
 
 def render_report(tasks: Sequence[Task]) -> str:
+    """生成包含总完成比例和有序待办列表的文本；展示格式负责将比例转换成百分数。"""
     # 纯函数只返回字符串，不读文件、不打印，因此能直接针对内容做单元测试。
     completed = sum(task.done for task in tasks)
     lines = [

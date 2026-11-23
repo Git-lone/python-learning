@@ -4,6 +4,12 @@ from collections.abc import Iterator
 
 
 class Countdown(Iterator[int]):
+    """逐次产出 start 到 1 的有状态迭代器；起点非正时直接耗尽。
+
+    类似 Java Iterator，但 Python 用 __next__ 返回元素或抛 StopIteration，
+    没有单独的 hasNext；重复遍历同一实例会接着当前位置继续。
+    """
+
     def __init__(self, start: int) -> None:
         self.current = start
 
@@ -21,6 +27,11 @@ class Countdown(Iterator[int]):
 
 
 def running_totals(numbers: Iterator[int]) -> Iterator[int]:
+    """按需消费上游并产出累计和，例如 2、3、5 对应 2、5、10。
+
+    调用函数只创建生成器，首次取值才开始执行；空输入不产出任何元素。
+    """
+
     total = 0
     for number in numbers:
         total += number

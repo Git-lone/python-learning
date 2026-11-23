@@ -9,6 +9,7 @@ from .report import render_report
 
 
 def build_parser() -> argparse.ArgumentParser:
+    """声明输入文件与可选负责人参数；这里只构造解析器，不读取任务文件。"""
     parser = argparse.ArgumentParser(description="生成任务完成情况报告")
     # type=Path 只转换参数类型，不证明文件存在；读取和错误处理交给 repository。
     parser.add_argument("--input", type=Path, required=True, help="UTF-8 JSON 任务文件")
@@ -17,6 +18,11 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: Sequence[str] | None = None) -> int:
+    """串联参数解析、读取、筛选与报告输出，领域数据错误时返回退出码 2。
+
+    参数格式错误由 argparse 自身处理；数据层抛出的 TaskDataError 在这里统一展示。
+    """
+
     # argv=None 读取真实命令行；测试传字符串列表即可，无需修改全局 sys.argv。
     arguments = build_parser().parse_args(argv)
     try:

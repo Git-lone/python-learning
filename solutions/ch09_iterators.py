@@ -7,6 +7,8 @@ T = TypeVar("T")
 
 
 def chunked(items: Iterable[T], size: int) -> Iterator[list[T]]:
+    """按最多 size 项惰性产出批次；内部只收集当前批次，不预先读完整个输入。"""
+
     # 函数含 yield，因此首次迭代才开始执行，size 校验也在那时发生。
     if size < 1:
         raise ValueError("size must be positive")

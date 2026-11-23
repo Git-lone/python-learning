@@ -11,6 +11,12 @@ class TaskDataError(ValueError):
 
 
 def load_tasks(path: Path) -> list[Task]:
+    """一次读取 UTF-8 JSON 数组并转换为任务列表，不返回部分校验通过的结果。
+
+    文件系统错误、JSON 语法错误及字段错误转换为 TaskDataError；
+    UTF-8 解码失败产生的 UnicodeDecodeError 未被本例捕获，会直接向上传播。
+    """
+
     try:
         raw = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as error:

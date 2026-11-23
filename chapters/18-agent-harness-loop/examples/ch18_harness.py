@@ -1,4 +1,9 @@
-"""演示 Harness 暂停高风险工具，并从检查点批准后恢复。"""
+"""演示 Harness 暂停高风险工具，并从检查点批准后恢复。
+
+阅读顺序：先看 main 的工具注册与两次运行，再进入 runtime.AgentHarness._drive。
+ReportModel 只提出发布请求；Harness 决定是否执行，工具负责产生实际副作用。
+这里用内存字典模拟发布结果，整个示例不会向外部系统发送周报。
+"""
 
 from collections.abc import Sequence
 
@@ -22,6 +27,8 @@ class ReportModel:
     def next_action(
         self, objective: str, history: Sequence[HistoryEvent]
     ) -> Action:
+        """根据有无历史提出请求，再按工具观察结束；objective 在这个固定替身中未参与决策。"""
+
         if not history:
             return ToolCall(
                 call_id="publish-weekly-001",
@@ -35,9 +42,13 @@ class ReportModel:
 
 
 def main() -> int:
+    """装配端口适配器，先运行到等待审批，再带明确决定恢复同一任务。"""
+
     published: dict[str, str] = {}
 
     def publish_report(call: ToolCall) -> str:
+        """把已批准的调用写入内存结果表；返回值作为观察反馈给模型。"""
+
         content = call.arguments.get("content")
         if not isinstance(content, str):
             raise ValueError("content must be a string")
@@ -75,6 +86,7 @@ def main() -> int:
         paused.run_id,
         approvals={"publish-weekly-001": True},
     )
+    # 工具完成后还要再让模型决策并通过 verifier，状态才从 running 变为 completed。
     print(
         f"completed={completed.status} answer={completed.answer} "
         f"tool_calls={completed.tool_calls}"

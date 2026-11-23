@@ -6,6 +6,11 @@ class InvalidQuantityError(ValueError):
 
 
 def require_positive_quantity(raw: str) -> int:
+    """把字符串转成正整数；转换失败或数量非正时统一抛出领域异常。
+
+    raw 的类型注解用于表达调用契约，不会自动执行运行时类型校验。
+    """
+
     try:
         quantity = int(raw)
     except ValueError as error:

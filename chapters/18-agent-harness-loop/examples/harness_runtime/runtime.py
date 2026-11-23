@@ -1,4 +1,8 @@
-"""确定性的 Agent Harness：驱动循环并托管所有安全边界。"""
+"""确定性的 Agent Harness：驱动循环并集中执行预算、审批与完成检查。
+
+主线为 start/resume → _drive → _handle_call → _observe → _drive。
+模型建议动作，Harness 推进状态；这个同步教学实现不包含生产鉴权、分布式租约或事务幂等。
+"""
 
 from __future__ import annotations
 
@@ -30,7 +34,11 @@ def _accept_any_answer(answer: str) -> str | None:
 
 
 class AgentHarness:
-    """在模型外部管理循环、预算、审批、检查点和事件。"""
+    """在模型外部管理循环、预算、审批、检查点和事件。
+
+    构造参数相当于注入 Java Service 的协作接口，便于替换模型、存储或观测实现。
+    一次调用返回 completed、failed 或 waiting_approval；等待审批也是正常返回结果。
+    """
 
     def __init__(
         self,
@@ -51,6 +59,7 @@ class AgentHarness:
     def start(self, run_id: str, objective: str) -> RunState:
         """创建新运行；重复 run_id 会被拒绝，避免覆盖已有检查点。"""
 
+        # 先检查再保存只适用于当前串行演示；并发启动同一 ID 需要存储侧原子唯一约束。
         if not run_id.strip() or not objective.strip():
             raise ValueError("run_id and objective must not be blank")
         if self._store.load(run_id) is not None:
@@ -62,7 +71,11 @@ class AgentHarness:
     def resume(
         self, run_id: str, approvals: Mapping[str, bool] | None = None
     ) -> RunState:
-        """从检查点恢复暂停或意外中断的运行。"""
+        """从已有检查点继续推进，保留已消耗预算和原 pending_call。
+
+        approvals 是上层提供的决定，映射本身没有用户身份、有效期或参数签名校验。
+        若仍未提供原调用的审批，循环会再次返回等待状态，而不是默认放行。
+        """
 
         state = self._store.load(run_id)
         if state is None:
@@ -83,12 +96,14 @@ class AgentHarness:
                 state = self._handle_call(state, state.pending_call, approvals)
                 if state.status != "running":
                     return state
+                # 工具处理已写入观察并清空 pending_call，下一次迭代才重新请求模型。
                 continue
 
             if state.step >= self._limits.max_steps:
                 return self._fail(state, "model step budget exhausted")
 
             action = self._model.next_action(state.objective, state.history)
+            # 模型接口异常会向调用方传播；这里的 failed 状态并不覆盖所有外部故障。
             if isinstance(action, FinalAnswer):
                 state = replace(state, step=state.step + 1)
                 self._record(state, "model_action", "final_answer")
@@ -123,6 +138,11 @@ class AgentHarness:
     def _handle_call(
         self, state: RunState, call: ToolCall, approvals: Mapping[str, bool]
     ) -> RunState:
+        """按白名单、工具预算、审批的顺序检查原调用，再把执行结果转为观察。
+
+        未注册或被拒绝的工具不会进入处理器，也不消耗工具调用计数；提出它的模型决策已计步。
+        """
+
         spec = self._tools.get(call.name)
         if spec is None:
             return self._observe(state, call, None, "tool not allowed")
@@ -162,6 +182,8 @@ class AgentHarness:
         result: object,
         error: str | None,
     ) -> RunState:
+        """追加一次成功或失败观察并回到 running，让模型依据执行事实决定下一步。"""
+
         observation = ToolObservation(
             call_id=call.call_id,
             name=call.name,
@@ -180,6 +202,8 @@ class AgentHarness:
         return running
 
     def _fail(self, state: RunState, error: str) -> RunState:
+        """把运行收敛到失败终态；清除待执行动作，避免把预算失败当成可继续审批。"""
+
         failed = replace(
             state, status="failed", pending_call=None, answer=None, error=error
         )
@@ -187,6 +211,8 @@ class AgentHarness:
         return failed
 
     def _record(self, state: RunState, kind: str, detail: str) -> None:
+        """保存当前快照并发送摘要事件；这两个端口调用都可能抛错，示例不做自动重试。"""
+
         # 先保存状态，再发布事件；生产实现还需要事务或 outbox 保证原子性。
         self._store.save(state)
         self._sink.emit(RunEvent(state.run_id, kind, state.step, detail))

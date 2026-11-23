@@ -2,7 +2,7 @@
 
 
 def classify_score(score: int) -> str:
-    """把分数转换为简单等级。"""
+    """按从高到低的阈值返回等级；本例暂不校验分数是否位于 0～100。"""
     # return 会结束本次调用，所以先判断高分，避免高分提前落入低等级。
     if score >= 90:
         return "A"
@@ -14,6 +14,8 @@ def classify_score(score: int) -> str:
 
 
 def main() -> int:
+    # Python 名称绑定到对象，无需像 Java 局部变量那样声明 String/double 类型。
+    # 但运行时仍有类型：字符串不能直接和数字相加，类型提示也不会自动做转换。
     customer = "Alice"
     unit_price = 20.0
     quantities = [1, 2]
