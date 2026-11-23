@@ -29,6 +29,27 @@ stdout_contains = ["tool=add result=5", "allowlist=enabled"]
 stderr_contains = []
 requirements = []
 
+[[examples]]
+example_id = "ch15-tool-contract"
+source = "chapters/15-structured-output-tools/examples/ch15_tool_contract.py"
+python_spec = ">=3.12,<3.14"
+dependencies = []
+working_directory = "."
+input_preparation = "无需模型或密钥；固定 JSON 包含成功、坏参数、未知工具及输入合同反例"
+command = ["python", "chapters/15-structured-output-tools/examples/ch15_tool_contract.py"]
+timeout_seconds = 5
+expected_exit_code = 0
+stdout_contains = [
+  'case=success {"status": "ok", "tool": "add", "result": 5}',
+  'case=bad-parameters {"status": "rejected", "stage": "tool-parameters", "reason": "left and right must be integers"}',
+  'case=unknown-tool {"status": "rejected", "stage": "allowlist", "reason": "unknown tool: delete_order"}',
+  'case=invalid-structure {"status": "rejected", "stage": "request-contract", "reason": "tool call must be a JSON object"}',
+  'case=invalid-json {"status": "rejected", "stage": "request-contract", "reason": "invalid JSON"}',
+  'case=invalid-arguments {"status": "rejected", "stage": "request-contract", "reason": "arguments must be a JSON object"}',
+]
+stderr_contains = [""]
+requirements = []
+
 [[boundaries]]
 boundary_id = "unknown-tool"
 topic_id = "tool-dispatch"

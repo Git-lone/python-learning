@@ -11,14 +11,19 @@ from agent_lab.api import create_app
 if __name__ == "__main__":
     # TestClient 直接调用 ASGI 应用，无需监听端口；默认使用离线模型网关。
     with TestClient(create_app()) as client:
-        response = client.post(
-            "/answer",
-            json={"question": "password reset"},
-            headers={"Authorization": "Bearer demo-alpha"},
-        )
-        assert response.status_code == 200
-        # TestClient 在这里读取完整响应后才返回，分片发送机制要继续阅读 API 的生成器。
-        # HTTP 200 只证明响应已建立，还需确认完成事件，并检查其他租户的资料未泄漏。
-        assert "event: done" in response.text
-        assert "PRIVATE" not in response.text
+        for question in ("password reset", "volcano"):
+            response = client.post(
+                "/answer",
+                json={"question": question},
+                headers={"Authorization": "Bearer demo-alpha"},
+            )
+            assert response.status_code == 200
+            # 本例的事件名位于每帧的 event 行。TestClient 收完整响应后才返回。
+            events = [
+                line.removeprefix("event: ")
+                for line in response.text.splitlines() if line.startswith("event: ")
+            ]
+            assert events[-1:] == ["done"]
+            assert "PRIVATE" not in response.text
+            print(f"question={question} events={','.join(events)}")
         print("API status=200 done=True tenant_isolated=True")

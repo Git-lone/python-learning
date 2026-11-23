@@ -25,7 +25,7 @@ input_preparation = "安装项目依赖，无需 API Key；仅使用合成数据
 command = ["python", "chapters/23-agent-api/examples/ch23_demo.py"]
 timeout_seconds = 30
 expected_exit_code = 0
-stdout_contains = ["API status=200 done=True tenant_isolated=True"]
+stdout_contains = ["API status=200 done=True tenant_isolated=True", "question=password reset events=start,delta,delta,done", "question=volcano events=start,abstain,done"]
 stderr_contains = []
 requirements = []
 

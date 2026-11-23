@@ -21,8 +21,8 @@ source = "chapters/18-agent-harness-loop/examples/ch18_harness.py"
 python_spec = ">=3.12,<3.14"
 dependencies = []
 working_directory = "."
-input_preparation = "使用离线 ReportModel、内存检查点和人工审批映射"
-command = ["python", "chapters/18-agent-harness-loop/examples/ch18_harness.py"]
+input_preparation = "使用离线 ReportModel；批准和拒绝分别创建独立的内存业务表与检查点，输出状态、预算和轨迹"
+command = ["python", "chapters/18-agent-harness-loop/examples/ch18_harness.py", "--decision", "both", "--trace"]
 timeout_seconds = 5
 expected_exit_code = 0
 stdout_contains = [
@@ -31,6 +31,18 @@ stdout_contains = [
   "published=本周完成 3 个任务",
   "approval_requested",
   "run_completed",
+  "scenario=approve",
+  "checkpoint step=1 tool_calls=0 published_count=0",
+  "decision=approve steps=2 tool_calls=1 published_count=1 error=None",
+  "observation call_id=publish-weekly-001 tool=publish_report result=published error=None",
+  "scenario=deny",
+  "completed=failed answer=None tool_calls=0",
+  "published=<none>",
+  "decision=deny steps=3 tool_calls=0 published_count=0 error=model step budget exhausted",
+  "trace step=2 event=verification_failed detail=周报尚未发布",
+  "trace step=3 event=verification_failed detail=周报尚未发布",
+  "trace step=3 event=run_failed detail=model step budget exhausted",
+  "observation call_id=publish-weekly-001 tool=publish_report result=None error=approval denied",
 ]
 stderr_contains = []
 requirements = []
@@ -40,6 +52,13 @@ boundary_id = "harness-pause-resume"
 topic_id = "harness-loop"
 input = "模型请求执行需要审批的副作用工具"
 expected_behavior = "Harness 在执行前保存 pending_call 并暂停，批准后从同一 call_id 恢复"
+requirements = []
+
+[[boundaries]]
+boundary_id = "harness-denied-publication"
+topic_id = "harness-loop"
+input = "拒绝发布后，离线模型持续回答未发布，完成验证仍要求存在发布记录"
+expected_behavior = "工具调用数与发布记录数均为0；完成验证反馈两次后模型步数达到3，运行以failed和model step budget exhausted结束"
 requirements = []
 
 [[exercises]]

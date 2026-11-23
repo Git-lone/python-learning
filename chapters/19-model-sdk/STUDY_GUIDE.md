@@ -24,8 +24,8 @@
 ## 探究任务
 
 1. 阅读[网关实现](../../agent_lab/gateway.py)，列出离线与真实 SDK 两个适配器共同向业务层暴露的事件：________。
-2. 运行 `python -m tools.run_example --chapter 19`，记录默认输出和用量字段：________。解释 `None` 代表什么：________。
-3. 阅读[测试](../../tests/test_gateway.py)，找出“缺少完成事件”和“超时”案例；写出部分文本与最终答案之间的区别：________。
+2. 运行 `python -m tools.run_example --chapter 19`，记录拼接后的文本和证据 ID。随后打开[网关测试](../../tests/test_gateway.py)的 `test_offline_does_not_invent_usage`，观察它如何取出最后一个事件。填入事件类型及输入 token 数，并解释该数值为何是 `None`。
+3. 在同一文件中找到 `eof` 用例，指出哪一段文本已收到、哪个完成事件缺失；再看 [API 超时测试](../../tests/test_api.py)的 `timeout` 用例。分别写出调用方怎样得知回答没有完整结束。
 
 ## 动手完成
 

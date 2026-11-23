@@ -385,8 +385,8 @@ def _format_issue(issue: Issue) -> str:
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="执行并校验章节示例")
     selection = parser.add_mutually_exclusive_group(required=True)
-    selection.add_argument("--chapter", help="章节编号（如 01）或章节标识（如 CH01）")
-    selection.add_argument("--all", action="store_true", help="执行全部章节示例")
+    selection.add_argument("--chapter", help="运行单章并显示示例输出，如 01 或 CH01")
+    selection.add_argument("--all", action="store_true", help="汇总全部章节，失败时显示示例输出")
     parser.add_argument("--example", help="仅执行指定示例；必须与 --chapter 同用")
     return parser
 
@@ -413,6 +413,17 @@ def main(
             all_issues.extend(error.issues)
             continue
         execution_issues = verify_execution(record, result)
+        # 学案需要读到程序实际打印的内容。全量验收只展开失败项，方便定位差异。
+        if arguments.chapter is not None or execution_issues:
+            for label, output, stream in (
+                ("stdout", result.stdout, sys.stdout),
+                ("stderr", result.stderr, sys.stderr),
+            ):
+                # 内部标记只供校验器生成诊断，不属于示例程序输出。
+                visible = output.partition(_DECODE_MARKER)[0]
+                if visible and not visible.startswith(_START_MARKER):
+                    print(f"[{chapter_id} / {record.example_id} / {label}]", file=stream)
+                    print(visible, end="" if visible.endswith("\n") else "\n", file=stream)
         if execution_issues:
             all_issues.extend(execution_issues)
         else:

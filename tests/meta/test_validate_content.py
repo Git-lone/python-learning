@@ -12,6 +12,7 @@ from tools.validate_content import (
     DOC_LINK_MISSING,
     DOC_MANIFEST_MISSING,
     DOC_SECTION_MISSING,
+    DOC_TITLE_MISMATCH,
     NAV_CATALOG_MISMATCH,
     TRACE_REQUIREMENT_UNCOVERED,
     main,
@@ -193,6 +194,7 @@ def test_mutations_are_located_and_stably_sorted(tmp_path: Path) -> None:
     readme = tmp_path / "chapters/01-basics/README.md"
     readme.write_text(
         readme.read_text(encoding="utf-8")
+        .replace("# 第 1 章：基础语法", "# 第 1 章：另一门课")
         .replace("## 验证方式", "## 验证")
         .replace("```python", "```py")
         + "\n[损坏链接](missing.md)\n",
@@ -207,6 +209,7 @@ def test_mutations_are_located_and_stably_sorted(tmp_path: Path) -> None:
 
     assert {
         CATALOG_DIRECTORY_UNLISTED,
+        DOC_TITLE_MISMATCH,
         DOC_SECTION_MISSING,
         DOC_CODE_FENCE_LANGUAGE,
         DOC_LINK_MISSING,

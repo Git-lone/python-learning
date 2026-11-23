@@ -36,7 +36,7 @@
 
 1. **先写预期（5 分钟）：** 第一个进程启动并等待审批，此时发布次数应为 0；第二个进程批准后，发布次数应为 1。把这两个数字写在运行命令旁边。
 2. **追踪状态（10 分钟）：** 按 `START → approve(interrupt) → publish → END` 阅读节点，找出 `thread_id` 选择的检查点、审批值的类型验证，以及哪一步真正写入 `Ledger`。
-3. **运行与重启（10 分钟）：** 运行示例，观察两个独立进程之间的恢复。再用新 thread 尝试拒绝路径，说明拒绝后为何不应发布。
+3. **运行与重启（10 分钟）：** 运行示例，观察两个独立进程之间的恢复。再按[学案](STUDY_GUIDE.md)保留数据库，手动批准一条 thread、拒绝另一条，分别核对流程状态和当前请求的发布记录。
 4. **故障窗口（5 分钟）：** 设想业务库写入成功但后续 checkpoint 未保存，恢复后可能再次调用发布。解释唯一 `request_id` 与载荷冲突检查分别解决什么。
 5. **练习与自测（10 分钟）：** 实现 `publish_once` 并覆盖相同 key/相同 body、相同 key/不同 body。自测：`thread_id` 是否可充当审批凭证？不可；它只是索引，真实服务还要验证操作者和资源归属。
 
@@ -51,14 +51,9 @@ python -m pytest tests/test_durable.py -q
 
 例子分别用两个独立 Python 进程运行 start 和 approve，第一个进程退出后仍能恢复。输出先是 `waiting_approval`、`deliveries=0`，再是 `published:demo-thread`、`deliveries=1`，临时数据库随后自动清理。
 
-手动观察持久化文件：
+继续完成[分步实验学案](STUDY_GUIDE.md)：创建独立且保留的实验目录，执行首次暂停、跨进程批准、错误 thread、人工拒绝与业务幂等验证。用 `python -m agent_lab.durable inspect --directory <实验目录> --thread <任务标识>` 只读观察已有任务；学案给出每一步的完整命令、预期输出和重开终端后的恢复方法。
 
-```powershell
-python -m agent_lab.durable start --directory .local/demo --thread demo-1
-python -m agent_lab.durable reject --directory .local/demo --thread demo-1
-```
-
-用新 thread 再走 approve 路径；已存在 thread 不能覆盖启动，无待审批状态不能继续审批。
+观察时把两类数据分开：`checkpoints.sqlite` 记录流程处于哪一步、审批结果和终态；`ledger.sqlite` 记录已发布的业务请求。CLI 的 `deliveries` 是整个账本总数，所以批准第一条后再拒绝第二条，总数仍为 1；要证明第二条未发布，还需按它的 `request_id` 查询。已存在 thread 不能覆盖启动，无待审批状态不能继续审批。
 
 ### 为什么仍然要幂等
 

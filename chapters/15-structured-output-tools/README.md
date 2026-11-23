@@ -4,6 +4,8 @@
 
 工具调用不是让模型执行代码，而是让模型提出一个结构化动作，再由应用决定是否允许以及如何执行。
 
+第 14 章拿到的是 `intent=refund` 这样的分类建议，并明确它不等于退款授权。本章继续研究：当建议变成 `{"name":"add","arguments":{"left":2,"right":3}}`，应用如何在执行前检查请求结构、允许列表和工具参数。先用没有外部 I/O 的加法走通这条链，再考虑真实订单查询。
+
 **配套学案：** [阅读概念讲义并完成实践](STUDY_GUIDE.md)
 
 ## 学习目标
@@ -39,18 +41,38 @@ result = registry.execute(call.name, call.arguments)
 
 工具失败不一定意味着整个 Agent 失败。可恢复错误可以转成观察，交给模型调整参数；权限拒绝、预算耗尽和高风险动作则应由确定性策略终止或请求人工确认。
 
-### 教案：模型可提议，执行器要验证（建议 35 分钟）
+### 教案：模型可提议，执行器要验证（建议 40 分钟）
 
-1. **先划边界（5 分钟）：** 模型只给出工具名和参数。写下由应用决定的三件事：工具是否存在、参数是否合法、调用是否被允许。
-2. **读示例（10 分钟）：** 从结构化 `add` 调用追到注册表和处理器，找出整数校验发生在加法之前的证据。说明为什么不能根据工具名调用任意同名函数。
-3. **故障推演（10 分钟）：** 分别预测未知工具、重复注册和非整数参数的结果。把“模型输出合法 JSON”与“操作获得执行许可”分开判断。
-4. **练习与自测（10 分钟）：** 先写注册，再写分派，最后处理空名、重复名和未知名。自测：注册表应替 `add` 猜测参数吗？不应；参数合同属于具体处理器。
+1. **承接分类建议（5 分钟）：** 回看第 14 章的三道关。本章把分类数据换成动作建议，但合法结构仍不是业务授权。
+2. **沿调用链读代码（10 分钟）：** 对照学案，依次找到 `parse_tool_call`、`ToolRegistry.execute`、`add`。分别解释它们证明了什么。
+3. **预测并运行反例（15 分钟）：** 先猜布尔参数、未知名称和数组根节点在哪层停止，再运行新增实践核对输出。特别区分“进入处理器”和“完成计算”。
+4. **练习与自测（10 分钟）：** 完成注册表练习。最后说明为什么只注册 `add` 能限制本例能力，却不能替真实订单查询做用户权限校验。
 
 ## 可运行示例
 
 ### 示例：ch15-tools
 
 [ch15_tools.py](examples/ch15_tools.py) 注册一个经过整数校验的 `add` 工具，并执行固定结构化调用。运行：`python -m tools.run_example --chapter 15`。
+
+### 示例：ch15-tool-contract
+
+[ch15_tool_contract.py](examples/ch15_tool_contract.py) 复用上面的注册表和 `add`，补齐不可信 JSON 的入口合同与拒绝观察。无需 API Key，默认一次运行六个固定案例；它模拟模型返回的文本，没有调用真实模型，也没有实现模型循环。
+
+在仓库根目录运行完整实践或单独一个反例：
+
+```powershell
+python chapters/15-structured-output-tools/examples/ch15_tool_contract.py
+python chapters/15-structured-output-tools/examples/ch15_tool_contract.py --case bad-parameters
+python chapters/15-structured-output-tools/examples/ch15_tool_contract.py --case unknown-tool
+```
+
+阅读[学案中的输入、预期与解释](STUDY_GUIDE.md)，先预测再运行。完整执行顺序是：
+
+```text
+模型建议文本 → JSON 解码与请求结构检查 → 注册表查找 → add 参数检查 → 加法结果
+                       ↓ 拒绝                 ↓ 拒绝         ↓ 拒绝
+               request-contract          allowlist     tool-parameters
+```
 
 ## 练习
 
@@ -62,6 +84,16 @@ result = registry.execute(call.name, call.arguments)
 
 示例应输出 `tool=add result=5` 和 `allowlist=enabled`。练习检查覆盖正常执行、未知工具、重复注册和空名称。
 
+新增实践的六行输出中，`success` 得到 `result=5`；其余均为 `status=rejected`。布尔参数停在 `tool-parameters`，未知工具停在 `allowlist`，数组根节点、非法 JSON 和非对象参数停在 `request-contract`。错误案例被预期地拒绝，所以演示进程仍以 `0` 退出。
+
+`python -m tools.run_example --chapter 15` 会校验两个示例的输出。还可单独运行本章实践的边界检查，确认拒绝时究竟有没有进入处理器：
+
+```powershell
+python -m pytest tests/test_tool_contract.py -q
+```
+
 ## 章节总结
 
 工具调用的安全性来自应用控制，不来自模型自律。白名单、参数校验、权限、幂等和审计共同构成 Agent 的动作边界。
+
+本例只实现入口合同、允许列表和整数校验；只读边界来自应用只注册无外部 I/O 的 `add`。注册表不会自动识别写操作，已注册也不代表当前用户有业务权限。接真实订单查询前，还需检查用户身份与订单归属。

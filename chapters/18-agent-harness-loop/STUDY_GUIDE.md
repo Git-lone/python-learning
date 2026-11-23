@@ -1,6 +1,6 @@
 # 第 18 章学案：Harness、审批与恢复
 
-配合[本章讲解](README.md)使用。先写状态表，再观察检查点与事件。
+配合[本章讲解](README.md)使用。本次实验以“发布周报需要人工批准”为场景：先预测批准与拒绝的结果，再运行命令核对检查点、工具观察和业务记录。
 
 ## Harness 是什么
 
@@ -14,7 +14,9 @@ Agent Loop 负责反复决策与观察；Harness 是托管这个循环的确定�
 
 ## 代码怎样工作
 
-[运行时](examples/harness_runtime/runtime.py)在模型提出工具调用后先保存 `pending_call`，需要审批就返回 `waiting_approval`。恢复时处理同一调用 ID，成功或拒绝都生成观察，最终答案还要经过验证。[示例](examples/ch18_harness.py)用内存存储展示全过程。内存检查点不能跨进程恢复；即使换成数据库，外部副作用仍需下游用 `call_id` 做幂等，避免“执行成功但保存检查点失败”后的重复操作。
+[运行时](examples/harness_runtime/runtime.py)在模型提出工具调用后先保存 `pending_call`，需要审批就返回 `waiting_approval`。恢复时处理同一调用 ID，成功或拒绝都生成观察，最终答案还要经过验证。[示例](examples/ch18_harness.py)的 `verify_publication` 读取内存业务表并核对回答，所以既能观察模型说了什么，也能检查发布是否发生。
+
+内存检查点不能跨进程恢复；即使换成数据库，外部副作用仍需下游用 `call_id` 做幂等，避免“执行成功但保存检查点失败”后的重复操作。
 
 ## 课前热身
 
@@ -23,17 +25,63 @@ Agent Loop 负责反复决策与观察；Harness 是托管这个循环的确定�
 
 ## 探究任务
 
-1. 阅读[示例入口](examples/ch18_harness.py)与[运行时](examples/harness_runtime/runtime.py)，填写状态表：启动后 `status` ________、`pending_call` ________、`tool_calls` ________；批准后分别为 ________。
-2. 运行 `python -m tools.run_example --chapter 18`，记录 `approval_requested` 与 `run_completed` 的顺序：________。
-3. 假设发布成功、保存下一条检查点前崩溃。恢复时为何可能重复调用？`call_id` 应由哪一层用于幂等？________。
+先不要运行程序，阅读 `ReportModel.next_action` 和 `verify_publication`，预测以下结果：
+
+| 观察项 | 批准时的预测 | 拒绝时的预测 |
+| --- | --- | --- |
+| 首次暂停时模型决策次数 | ________ | ________ |
+| 首次暂停时发布记录数 | ________ | ________ |
+| 最终工具执行次数 | ________ | ________ |
+| 最终模型决策次数 | ________ | ________ |
+| 最终运行状态与原因 | ________ | ________ |
+
+### 实验一：批准原调用
+
+在仓库根目录运行：
+
+```bash
+python chapters/18-agent-harness-loop/examples/ch18_harness.py --decision approve --trace
+```
+
+在输出中找出 `approval_requested`、`run_resumed`、`tool_result`、`run_completed`。解释为什么恢复事件和工具结果事件的 `step` 都是 1，而完成事件的 `step` 是 2：________。再查看 `published_count`，记录你用什么事实证明周报已经发布：________。
+
+### 实验二：拒绝原调用
+
+```bash
+python chapters/18-agent-harness-loop/examples/ch18_harness.py --decision deny --trace
+```
+
+先核对 `tool_calls=0`、`published_count=0` 和 `published=<none>`，确认拒绝没有产生副作用。再沿事件找出两次 `verification_failed`，回答：模型说“未发布”虽然符合事实，为什么仍然不满足当前完成条件？________。
+
+最后检查 `run_failed` 的原因。不要把 `approval denied` 和 `model step budget exhausted` 当作同一件事：前者是一条工具观察，后者是本次循环最终停止的原因。输出中的 `completed=failed` 保存的是恢复后的终态，并没有宣称任务完成。
+
+<details>
+<summary>运行后核对结果</summary>
+
+两条路径首次都在 `step=1` 暂停，工具执行 0 次，发布记录 0 条。批准后工具执行 1 次，模型在第 2 次决策给出回答，业务记录和回答一致，运行完成。拒绝后工具执行始终为 0；第 2、3 次模型决策都给出“周报未发布”，完成验证均不通过，最终因 3 步预算耗尽而失败。此时发布记录仍为 0。
+
+拒绝路径不是“取消成功”的专用状态机。这个离线模型不会根据验收反馈改变策略，Harness 用预算让无法完成的任务有界结束；这正是本次对照要观察的局限。
+
+</details>
+
+### 实验三：将两条路径纳入章节校验
+
+```bash
+python -m tools.run_example --chapter 18
+```
+
+章节清单使用 `--decision both --trace`，依次创建两个独立场景，并验证输出中的状态、次数、观察和失败原因。两个场景沿用相同的教学调用 ID，但各自有独立的内存存储，不共享发布记录；这不能用于证明跨进程幂等。
+
+继续思考：假设发布成功、保存下一条检查点前崩溃，恢复时为何可能重复调用？`call_id` 应由哪一层用于幂等？________。
 
 ## 动手完成
 
 - 完成[练习](exercises/exercise_ch18.py)的 `_drive` 和 `_handle_call`：正常工具、审批暂停、批准/拒绝、预算、完成验证依次实现。
-- 运行 `python -m tools.check_exercise --chapter 18`。画出一次拒绝审批的轨迹与工具执行次数：________。
+- 运行 `python -m tools.check_exercise --chapter 18`。把本次拒绝轨迹中的“工具观察”“验收反馈”“预算停止”标成三个不同节点，注明每个节点的模型步数：________。
 
 ## 过关自检
 
 - 能解释恢复时先处理 `pending_call` 而不是再次询问模型。
 - 能区分模型步数和实际工具执行次数。
+- 能用业务记录证明拒绝无副作用，并解释本例为什么随后预算耗尽。
 - 能说明检查点、幂等和完成验证各解决哪种失败。完成后再看[参考答案](../../solutions/ch18_harness.py)。

@@ -1,19 +1,19 @@
 # 本次验证记录
 
-日期：2026-09-19。环境：Windows，Python 3.13.15，项目根目录 `C:\workspace\my\py\learning`。依赖见 pyproject 与 requirements-dev.lock。
+2026-11-23 在 Windows 和 Python 3.13.15 的项目虚拟环境中验证，依赖版本见 [requirements-dev.lock](../requirements-dev.lock)。以下命令均在仓库根目录执行。
 
 | 检查 | 结果 |
 |---|---|
-| `python -m tools.run_example --all` | 24/24 个示例通过 |
+| `python -m tools.run_example --all` | 24 章共 25 个示例通过，含第 15 章的六组工具输入与第 18 章的两条审批路径 |
 | `python -m tools.check_exercise --all --solution` | 24/24 章参考答案验收通过 |
-| `python -m pytest -q` | 51 项测试通过 |
+| `python -m pytest -q` | 65 项测试通过，包括章节标题与目录对应、示例输出展示、工具分派边界和工作流状态查询 |
 | `python -m mypy` | 17 个源文件通过，范围为 agent_lab 与 tools |
 | `python -m tools.validate_content` | 原有严格文档、清单与导航校验通过 |
 | `python -m tools.validate_links` | 含 career 文档的补充链接校验通过 |
-| Ruff | 新增实战代码、练习与答案，以及 tools/tests 检查通过 |
+| `python -m ruff check .` | 仓库代码检查通过 |
 | `python -m pip check` | 未发现损坏依赖 |
 
-Ruff 检查范围为 agent_lab、tools、tests、第 19～24 章目录以及 ch19～ch24 参考答案；未对旧章节做格式化重写。pytest 有 1 条来自 Starlette TestClient 使用 AnyIO 弃用别名的 DeprecationWarning，不影响本次通过结果；没有屏蔽该提示。
+pytest 报告了 1 条依赖弃用提示，来自 Starlette TestClient 对 AnyIO 别名的使用。
 
 真实执行了 MCP stdio 子进程，以及 LangGraph 审批前退出、另一个进程恢复的示例。OpenAI SDK 使用 HTTPX2 mock transport 验证事件解析，没有发送真实付费模型请求；API 使用本地 TestClient 验证，没有声称已经做完生产部署或网络压测。
 

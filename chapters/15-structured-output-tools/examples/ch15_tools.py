@@ -11,6 +11,10 @@ import json
 ToolHandler = Callable[[Mapping[str, object]], object]
 
 
+class UnknownToolError(KeyError):
+    """名称未注册；仍兼容 KeyError，且不会与处理器内部的缺键错误混淆。"""
+
+
 class ToolRegistry:
     """保存应用显式注册的函数；注册和执行职责分开，便于统一限制能力范围。"""
 
@@ -31,7 +35,7 @@ class ToolRegistry:
         try:
             handler = self._tools[name]
         except KeyError as error:
-            raise KeyError(f"unknown tool: {name}") from error
+            raise UnknownToolError(f"unknown tool: {name}") from error
         # 注册表负责名称白名单；参数校验仍由具体工具负责，异常由上层循环处理。
         return handler(arguments)
 

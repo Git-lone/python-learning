@@ -289,8 +289,26 @@ def test_cli_supports_chapter_and_all_selection(
     all_output = capsys.readouterr()
 
     assert chapter_exit == 0
+    assert "章节完成" in chapter_output.out
     assert "PASS | CH01 | basics-main" in chapter_output.out
     assert "已通过 1 个示例" in chapter_output.out
     assert all_exit == 0
+    assert "章节完成" not in all_output.out
     assert "PASS | CH01 | basics-main" in all_output.out
     assert "已通过 1 个示例" in all_output.out
+
+
+def test_batch_failure_shows_actual_stdout_and_stderr(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    _make_course(tmp_path)
+    _write(
+        tmp_path / "chapters/01-basics/examples/main.py",
+        "import sys\nprint('unexpected output')\nprint('error detail', file=sys.stderr)",
+    )
+
+    assert main(["--all"], repo_root=tmp_path) == 1
+    output = capsys.readouterr()
+    assert "unexpected output" in output.out
+    assert "error detail" in output.err
+    assert EXAMPLE_STDOUT_MISSING in output.err

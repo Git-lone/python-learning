@@ -1,6 +1,6 @@
 # Python 与 Agent 开发求职教程
 
-面向有 Java 基础、准备应聘 Agent 应用开发/后端工程岗位的开发者。项目根目录是 **C:\workspace\my\py\learning**，不是上一级 py。
+这是一门给 Java 后端开发者的 Python 与 Agent 应用开发课。从 Python 基础开始，可以一路做到带工具、审批和持久化的应用。下文的命令都在含有 `pyproject.toml` 和 `catalog.toml` 的仓库根目录运行。
 
 保留 Python 基础与教学 Agent Loop，新增模型 SDK、MCP、LangGraph 持久化、检索评测和 API 服务，共 **24 章**。默认全程使用合成数据和离线模型 fixture，只有显式 --live 才访问可能计费的模型 API。
 
@@ -16,23 +16,33 @@
 - [本次验证记录与未测范围](career/VERIFICATION.md)
 - [章节索引](INDEX.md)
 
-每章有学习目标、Java 对照、示例、练习和学案。第 14 章现已改为[四节连续的 LLM 应用课](chapters/14-llm-application-basics/README.md)，配有预测、运行记录和评测学案；其他章节的教案仍是初稿，尚未达到同样的课程深度。后续改写遵循[课程写作基准](COURSE_DESIGN.md)，可从[第 1 章](chapters/01-basics/README.md)按顺序学习。
+刚接触 Python，可以从[第 1 章](chapters/01-basics/README.md)开始。每章先填学案里的预测，再运行示例、对照输出，最后用练习检查自己能否独立实现。章节写作约定见[课程写作基准](COURSE_DESIGN.md)。
+
+熟悉 Python、想先体验业务 Agent，可以按下面的顺序做实验。
+
+| 要解决的问题 | 动手做什么 |
+|---|---|
+| 模型能读懂退款诉求吗？ | 用四条消息找出关键词分类器的误判和漏判。[第 14 章 · LLM 应用](chapters/14-llm-application-basics/README.md) |
+| 模型提出的动作能执行吗？ | 给工具注册表输入合法调用、错误参数和未知工具名，记录每种输入在哪一步得到处理。[第 15 章 · 工具调用](chapters/15-structured-output-tools/README.md) |
+| 工具结果如何影响下一步？ | 数一遍模型决策和工具执行次数，再观察人工批准或拒绝后运行如何收尾。[第 17 章 · Agent Loop](chapters/17-ai-agent-engineering/README.md) · [第 18 章 · Harness](chapters/18-agent-harness-loop/README.md) |
+| 进程退出后，怎样接着上次审批？ | 在另一个进程中恢复同一线程，对照流程检查点与业务账本。[第 21 章 · 持久化实验](chapters/21-durable-workflow/STUDY_GUIDE.md) |
 
 ## 安装与运行
 
-Windows PowerShell，在项目根执行。已经创建好的本机虚拟环境可以直接使用，不必重复创建：
+首次在 Windows 使用时，在仓库根目录打开 PowerShell，确认 `python --version` 为 3.12 或 3.13，然后执行以下命令。已安装好项目依赖的读者可以直接运行最后一行。
 
 ```powershell
-cd C:\workspace\my\py\learning
 $env:PYTHONUTF8 = "1"
 python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements-dev.lock -e ".[dev]"
-.\.venv\Scripts\python.exe -m tools.run_example --chapter 19
+.\.venv\Scripts\python.exe -m tools.run_example --chapter 17
 ```
 
 这是 Python 3.13.15 / Windows 验证环境的依赖快照。其他平台优先从 pyproject 安装：`python -m pip install -e ".[dev]"`，然后重跑验证。安装只影响项目 venv，不改系统 Python、Java 或 Maven 配置。
 
 下文与各章中的 `python` 都指本项目虚拟环境。可执行 `.\.venv\Scripts\Activate.ps1` 激活；被执行策略拦截时直接用完整的 `.\.venv\Scripts\python.exe`，无需修改系统执行策略。
+
+上面的第 17 章示例会打印 `tool=add result=5` 和 `final=2 + 3 = 5 steps=2`。一次决策提出加法工具调用，另一次读取结果并给出答案，所以执行一次工具用了两次决策。按章运行时可以直接对照学案观察输出，`--all` 用于批量检查，失败时会展开对应示例的输出。
 
 ## 示例、练习、参考答案
 

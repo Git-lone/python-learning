@@ -1,6 +1,6 @@
 """第 21 章持久化工作流：草稿暂停审批，跨进程恢复，再幂等写入本地业务账本。
 
-阅读顺序是 State → Ledger → build_graph → main。checkpoints.sqlite 保存流程
+阅读顺序是 State → Ledger → build_graph → inspect_workflow → main。checkpoints.sqlite 保存流程
 进度，ledger.sqlite 保存模拟发布结果，二者职责与事务边界不同。本例不调用模型、
 不向外部系统发消息；“发布”仅是 SQLite 插入，不能据此宣称远程写入恰好执行一次。
 """
@@ -8,7 +8,7 @@
 from __future__ import annotations
 
 import argparse
-from contextlib import contextmanager
+from contextlib import closing, contextmanager
 from collections.abc import Iterator
 from pathlib import Path
 import sqlite3
@@ -122,18 +122,67 @@ def build_graph(checkpointer: SqliteSaver, ledger: Ledger) -> Any:
     return graph.compile(checkpointer=checkpointer)
 
 
+def inspect_workflow(directory: Path, thread: str) -> dict[str, object]:
+    """观察已有检查点与账本，不构建或执行图，也不创建缺失的数据库。
+
+    使用只读 SQLite 连接和 checkpointer 的读取接口。两份文件分别读取，结果适合
+    本地串行实验；它不是并发执行期间跨数据库的一致性快照。
+    """
+
+    checkpoint_path = directory / "checkpoints.sqlite"
+    ledger_path = directory / "ledger.sqlite"
+    for path in (checkpoint_path, ledger_path):
+        if not path.is_file():
+            raise FileNotFoundError(f"database file not found: {path}")
+
+    # mode=ro 同时防止误建文件和写入；已存在数据库由正常 start 命令完成过初始化。
+    with closing(sqlite3.connect(checkpoint_path.resolve().as_uri() + "?mode=ro", uri=True)) as db:
+        checkpoint = SqliteSaver(db).get_tuple({"configurable": {"thread_id": thread}})
+        values = checkpoint.checkpoint["channel_values"] if checkpoint else {}
+
+    # 按状态中的业务 request_id 查账本，不假定所有调用者都像 CLI 一样令它等于 thread。
+    request_id = values.get("request_id")
+    with closing(sqlite3.connect(ledger_path.resolve().as_uri() + "?mode=ro", uri=True)) as db:
+        total = db.execute("SELECT count(*) FROM deliveries").fetchone()[0]
+        # 缺少检查点时无法确定业务键，用 None 表示未知，不把“无法关联”当作零条发布。
+        current = (
+            db.execute(
+                "SELECT count(*) FROM deliveries WHERE request_id=?", (request_id,)
+            ).fetchone()[0]
+            if request_id is not None
+            else None
+        )
+    return {
+        "checkpoint_found": checkpoint is not None,
+        "request_id": request_id,
+        "approved": values.get("approved"),
+        "result": values.get("result"),
+        "deliveries_total": total,
+        "deliveries_for_request": current,
+    }
+
+
 def main() -> None:
     """以命令行模拟提交人和审批人的两次操作，每次启动都从磁盘读取同一流程。
 
-    start 新建并暂停，approve/reject 用 Command 恢复已有暂停点。本例未实现
-    审批人身份认证或多工作进程协调，这些不能由持久化检查点自动获得。
+    start 新建并暂停，approve/reject 用 Command 恢复已有暂停点，inspect 只观察。
+    本例未实现审批人身份认证或多工作进程协调，这些不能由持久化检查点自动获得。
     """
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("action", choices=["start", "approve", "reject"])
+    parser.add_argument("action", choices=["start", "approve", "reject", "inspect"])
     parser.add_argument("--directory", type=Path, required=True)
     parser.add_argument("--thread", default="demo-thread")
     args = parser.parse_args()
+    if args.action == "inspect":
+        try:
+            observation = inspect_workflow(args.directory, args.thread)
+        except FileNotFoundError as error:
+            parser.error(str(error))
+        for key, value in observation.items():
+            print(f"{key}={value}")
+        return
+
     args.directory.mkdir(parents=True, exist_ok=True)
     ledger = Ledger(args.directory / "ledger.sqlite")
     # 相同 thread_id 定位同一次工作流；更换 ID 是新任务，不是恢复旧任务。

@@ -32,6 +32,7 @@ SECTIONS = (
 CATALOG_DIRECTORY_UNLISTED = "CATALOG-DIRECTORY-UNLISTED"
 DOC_MANIFEST_MISSING = "DOC-MANIFEST-MISSING"
 DOC_READ_FAILED = "DOC-READ-FAILED"
+DOC_TITLE_MISMATCH = "DOC-TITLE-MISMATCH"
 DOC_SECTION_MISSING = "DOC-SECTION-MISSING"
 DOC_SECTION_DUPLICATE = "DOC-SECTION-DUPLICATE"
 DOC_SECTION_ORDER = "DOC-SECTION-ORDER"
@@ -100,10 +101,17 @@ def _section_spans(text: str) -> list[tuple[str, int, int]]:
     ]
 
 
-def validate_chapter_template(path: Path, chapter_id: str) -> list[Issue]:
+def validate_chapter_template(
+    path: Path, chapter_id: str, *, expected_heading: str | None = None
+) -> list[Issue]:
     text, issues = _read_text(path, chapter_id)
     if text is None:
         return issues
+    # 学习者从目录进入正文时，首页首行的章号和名称应与目录对应。
+    if expected_heading is not None and text.partition("\n")[0] != expected_heading:
+        issues.append(
+            _issue(DOC_TITLE_MISMATCH, f"首行标题应为 {expected_heading}", path, chapter_id)
+        )
     spans = _section_spans(text)
     names = [name for name, _, _ in spans]
     for section in SECTIONS:
@@ -361,7 +369,11 @@ def validate_repository(repo_root: Path) -> tuple[Issue, ...]:
     for chapter in catalog.chapters:
         readme = root / chapter.entry
         documents.add(readme)
-        issues.extend(validate_chapter_template(readme, chapter.chapter_id))
+        issues.extend(
+            validate_chapter_template(
+                readme, chapter.chapter_id, expected_heading=f"# 第 {chapter.number} 章：{chapter.title}"
+            )
+        )
         manifest_path = root / chapter.directory / "chapter.toml"
         if not manifest_path.is_file():
             issues.append(_issue(DOC_MANIFEST_MISSING, "章节缺少 chapter.toml 清单（当前内容仍为占位）", manifest_path, chapter.chapter_id))
