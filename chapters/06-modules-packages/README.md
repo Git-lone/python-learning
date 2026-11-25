@@ -33,7 +33,11 @@ total = gross_total(amounts)
 
 ## Python 知识
 
-一个 `.py` 文件就是模块，含 `__init__.py` 的目录是普通包。绝对导入更易跨包理解，包内部紧密相关模块可用显式相对导入，例如 `from .pricing import gross_total`。
+一个 `.py` 源文件可以作为模块导入；普通包则把多个模块收在同一个名字下面。本章的 `pricing.py` 是模块，装着它的 `order_tools` 是普通包。与 Java 的 `import` 允许用短名引用类型不同，Python 导入时要执行相应模块的顶层语句，并把找到的对象绑定到名字上。
+
+顺着订单示例读一次：调用方写 `from order_tools import gross_total` → 首次载入包时执行 `__init__.py` → 其中的 `from .pricing import gross_total` 把实现模块里的函数绑定到包上。前导点表示**相对当前包**找模块，不是相对终端所在的目录找文件。包入口提供的是同一个函数，不是又算了一遍含税价。
+
+**判断题：** 假如只删掉 `__all__ = ["gross_total"]`，调用方显式导入函数还会成功吗？会。真正提供这个名字的是上一行相对导入；`__all__` 主要决定 `from order_tools import *` 选取哪些名字，并不像 Java 的 `private` 那样禁止访问。
 
 模块顶层应主要放常量、定义和轻量注册。命令行入口放进 `main()`，再由名称保护语句调用，这样测试和其他模块可以安全导入。
 

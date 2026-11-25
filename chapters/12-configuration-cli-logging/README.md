@@ -40,6 +40,12 @@ class Settings:
 
 库代码不要调用 `logging.basicConfig()`；它属于应用入口。日志记录事件和上下文，不记录完整提示词、访问令牌或用户敏感数据。Agent 轨迹尤其需要区分可审计元数据与不可落盘内容。
 
+### 一条日志是怎样到达输出端的？
+
+[本章示例](examples/ch12_configuration.py)传入 `{"APP_ENV": "dev", "APP_LOG_LEVEL": "info"}`。环境映射给的是字符串，`load_config` 把 `info` 转为日志模块认识的级别，再交给 Logger。不要把配置原文和已经解析的配置对象当成同一层数据。
+
+当代码调用 `logger.info("service started")` 时，**Logger** 先判断这个级别是否值得记录；**Handler** 决定把记录写到哪里；**Formatter** 决定在那里呈现什么文字。对应 Logback 的 logger、appender 和 pattern：本例的目的地是内存文本流，格式是“级别:消息”，因此最后打印 `log=INFO:service started`。若只把示例映射里的 `info` 改为 `warning` 呢？INFO 低于门槛，内存流为空，最后一行只剩 `log=`。日志缺失不一定是写入失败。
+
 ### 教案：在入口处消化不可信配置（建议 30 分钟）
 
 1. **场景导入（5 分钟）：** 服务从环境变量读取端口和调试开关。先判断字符串 `"false"` 的布尔值为何不能直接用 `bool(...)`，再列出两个非法端口。

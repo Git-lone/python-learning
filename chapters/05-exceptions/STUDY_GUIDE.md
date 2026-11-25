@@ -24,7 +24,7 @@
 ## 探究任务
 
 1. 对输入 `"3"`、`"abc"`、`"0"`，写出转换阶段和业务校验阶段的结果：________。
-2. 阅读[示例](examples/ch05_exceptions.py)，标出 `except`、`else`、`finally` 以及 `raise ... from ...`。运行 `python -m tools.run_example --chapter 05`，记录清理是否执行：________。
+2. 阅读[示例](examples/ch05_exceptions.py)，标出解析失败时的 `raise ... from ...` 和调用方的 `finally`；再读[本章讲解](README.md)里的 `else` 实验，区分二者的执行条件。运行 `python -m tools.run_example --chapter 05`，记录清理是否执行：________。
 3. 解释 `"abc"` 与 `"0"` 最终都可成为业务异常，但只有前者需要转换异常作为 `__cause__`：________。
 
 ## 动手完成

@@ -34,7 +34,18 @@ def running_totals(numbers):
 
 ## Python 知识
 
-可迭代对象能产生迭代器，迭代器在 `__next__` 中维护当前位置并在结束时抛出 `StopIteration`。生成器替你实现这些状态机细节，通常是自定义惰性序列的首选。
+把可迭代对象和迭代器想成 Java 的 `Iterable` 和 `Iterator`：前者能给你一个遍历入口，后者是记着“读到哪里了”的游标。对列表重新调用 `iter(numbers)` 会拿到新游标；对同一个生成器调用 `iter`，拿到的却是它自己，不会重置。Python 没有要求先问 `hasNext()`：`next` 取不到值时抛 `StopIteration`，而 `for` 会把它当成正常结束。
+
+接着上面的 `running_totals` 试一遍，先预测最后一行：
+
+```python
+totals = running_totals(iter([2, 3, 5]))  # 创建生成器，尚未算第一个总和
+print(next(totals))                       # 2：函数在 yield 处暂停，记住 total = 2
+print(list(totals))                       # [5, 10]：从暂停处继续，不从 2 重新开始
+print(list(totals))                       # []：同一游标已经走到末尾
+```
+
+`return` 会结束函数；`yield` 这次交出一个值，还能保留局部变量供下次继续。想重新得到完整的三个结果，需要用可重读的原始数据新建生成器，而不是把同一个游标再传一遍。
 
 生成器表达式 `(transform(item) for item in source)` 不会立即创建列表。惰性可以节省内存，但错误也可能延迟到消费时发生；API 文档和测试应说明这一点。
 

@@ -35,7 +35,11 @@ with path.open(encoding="utf-8") as stream:
 
 `Path` 支持 `/` 运算符拼接路径，以及 `read_text`、`write_text`、`open`、`suffix` 等高层操作。大文件应流式读取，不要无条件 `read_text()` 把全部内容载入内存。
 
-上下文管理器的退出方法即使发生异常也会运行。自定义资源可以实现协议，也可以用 `contextlib.contextmanager` 把 `yield` 前后分别作为获取和释放阶段。
+“上下文”在这里不是传参用的 Context，而是**只在一段代码执行期间成立的条件**，例如“文件是打开的”。`with path.open(...) as stream:` 进入时拿到可读的文件对象，离开时调用退出方法关闭文件。Java 的 try-with-resources 也负责清理，但 Python 的 `as` 名字离开块后仍可访问：**名字还在，并不代表资源还能用。**
+
+把示例停在内层 `with` 之后、外层 `with` 之内：`len(orders)` 是 `2`，因为解析出的列表已经在内存里；`stream.closed` 是 `True`；此时调用 `stream.read()` 会抛 `ValueError`。磁盘上的 JSON 文件这时仍在，直到退出外层临时目录才被删除。如果块内解析出错，文件也会关闭，解析异常仍向外传播。
+
+自定义管理器也可用 `contextlib.contextmanager` 编写：`yield` 把资源交给调用方，清理写在包围 `yield` 的 `finally` 中，才能保证块内抛异常时也执行。
 
 ### 教案：资源在异常时也要关闭（建议 30 分钟）
 

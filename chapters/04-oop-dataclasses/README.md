@@ -36,6 +36,20 @@ class OrderLine:
 
 实例方法的第一个参数通常命名为 `self`，它是显式传入的实例引用。单下划线表示内部实现约定，双下划线触发名称改写，但 Python 并不依靠访问修饰符构建绝对封装。
 
+### `order.total` 是字段，还是一次计算？
+
+`@dataclass` 根据声明的字段生成初始化、比较等方法，所以示例可以写 `Order("SO-1001")`，不必手写构造方法。`@property` 做的是另一件事：让读取属性时运行一个方法。在本章示例里，`order.total` 类似 Java 的 `order.getTotal()`，而不是取一个已经保存的总价。Python 调用者不写括号，也不用手动传入 `self`；读取谁的 `total`，这个方法里的 `self` 就是谁。
+
+在示例的 `OrderLine` 和 `Order` 定义之后试一下。先猜给第一张订单加一行商品，第二张的总价会不会变：
+
+```python
+first, second = Order("A"), Order("B")
+first.lines.append(OrderLine("BOOK", 25.0, 2))
+print(first.total, second.total)  # 50.0 0
+```
+
+`field(default_factory=list)` 交给数据类的是“创建列表的函数”，每创建一张没有指定明细的订单，就调用一次；效果类似 Java 在每个实例中初始化 `new ArrayList<>()`。两张订单各有自己的明细，所以第二张仍是空单。`frozen=True` 限制的是订单行的字段赋值，不是外层订单的增删明细。
+
 `__len__`、`__iter__`、`__str__` 等特殊方法让对象参与语言协议。优先组合而非深继承；只有确实存在可替换的 “is-a” 关系时才使用继承。
 
 ### 教案：用值对象表达约束（建议 30 分钟）

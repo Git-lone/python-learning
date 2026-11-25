@@ -37,9 +37,15 @@ def test_discount(price: str, rate: str, expected: str) -> None:
 
 ## Python 知识
 
-测试采用 Arrange/Act/Assert 结构：准备数据、执行一个行为、断言可观察结果。参数化适合用同一规则验证多个代表值；夹具适合有建立和清理生命周期的共享资源，而不是隐藏所有输入。
+### 两个测试函数，为什么会得到三个测试结果？
 
-`pytest.raises` 同时验证异常类型与消息。mock 应放在代码真正读取名称的位置，并优先使用 `autospec` 或严格接口，避免测试替身接受生产对象不支持的调用。
+先按 Arrange / Act / Assert 读一个测试：准备金额，调用折扣函数，最后比较实际与预期金额。参数化只是换掉第一步的数据，后两步的行为不变。
+
+看上面的 `@pytest.mark.parametrize`：第一行数据把参数分别设为价格 `"100"`、减免比例 `"0.2"`、折后金额 `"80.00"`，第二行换成原价不打折。**参数化**就是让测试框架用每行数据各运行一次同一个函数，像 JUnit 的 `@ParameterizedTest`；它不是在一个测试里循环两次。即使第一行失败，第二行仍是独立的用例。在[本章示例](examples/test_pricing.py)里，这两行加上独立的负价格测试，一共三个。
+
+负价格用例的断言不在等号右边，而在 `with pytest.raises(ValueError, match="negative"):`。类比 JUnit 的 `assertThrows`：代码块必须抛出指定类型或其子类；额外的 `match` 要求异常消息匹配正则。只写 `pytest.raises(ValueError)` **不会**检查消息。如果函数把负数悄悄改为零并正常返回，这条测试反而失败。
+
+**夹具（fixture）**解决另一个问题：用例执行前从哪里拿到已准备好的资源？例如测试声明参数 `tmp_path`，pytest 就按名字提供它的临时目录，像 JUnit 的 `@TempDir`。这不是一行参数化测试数据。折扣函数只需要几个金额，不必为它引入夹具或 mock。
 
 ### 教案：测试可观察行为（建议 30 分钟）
 

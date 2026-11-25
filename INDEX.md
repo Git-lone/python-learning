@@ -1,6 +1,14 @@
 # 章节索引
 
-本索引与 [catalog.toml](catalog.toml) 和 [项目总览](README.md) 保持一致。项目根目录是 C:\workspace\my\py\learning。先修项只引用更早章节。
+本索引与 [catalog.toml](catalog.toml) 和 [项目总览](README.md) 保持一致。命令从仓库根目录运行。先修项只引用更早章节。
+
+**从熟悉的 Java 概念反查：**
+
+- **集合和对象**：用 [List、Map 与列表切片](chapters/02-collections-comprehensions/README.md)区分“一条记录”和“一批记录”；用 [getter 与计算属性](chapters/04-oop-dataclasses/README.md)看字段何时计算。
+- **接口和执行时机**：从 [Java 接口到 Protocol](chapters/08-type-hints/README.md)，再比较 [Iterator 与 yield](chapters/09-iterators-generators/README.md)、[CompletableFuture 与协程](chapters/10-concurrency-asyncio/README.md)。重点问：创建对象时，里面的代码已经跑了吗？
+- **测试和服务调用**：从 [JUnit 到 pytest](chapters/11-automated-testing/README.md)，再看[超时为何不等于业务失败](chapters/13-http-api-resilience/README.md)。
+- **从一次方法调用到 Agent**：先看[注册函数为什么不等于调用函数](chapters/15-structured-output-tools/README.md)，再看[模型何时读取执行结果](chapters/17-ai-agent-engineering/README.md)、[进程重启后谁记得审批](chapters/21-durable-workflow/README.md)。
+- **排查服务质量**：分开看[文档有没有找全](chapters/22-retrieval-evaluation/README.md)、[流式响应有没有结束](chapters/23-agent-api/README.md)、[延迟和成功率是否达标](chapters/24-production-readiness/README.md)。它们测的是不同的事情。
 
 | 编号 | 主题 | 先修章节 | 唯一入口 |
 |---:|---|---|---|

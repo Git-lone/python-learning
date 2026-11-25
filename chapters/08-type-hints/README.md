@@ -34,9 +34,11 @@ class Priced(Protocol):
 
 ## Python 知识
 
-优先使用内置泛型写法，如 `list[str]`、`dict[str, int]` 和 `str | None`。如果返回类型依赖输入元素类型，使用 `TypeVar`，而不是用 `object` 或 `Any` 擦除关系。
+读类型提示时，先把符号翻成一句话：`list[str]` 是“元素为字符串的列表”，`dict[str, int]` 是“键为字符串、值为整数的字典”，`str | None` 是“字符串或空值”。最后一个不是 Java 的 `Optional<String>` 包装对象；有值时拿到的就是字符串，没有值时才是 `None`。
 
-`Protocol` 关注“对象能做什么”，类似静态版本的鸭子类型。类型检查器不是数据校验器：JSON、环境变量和 HTTP 输入仍需在运行时解析和验证。
+本章练习把这些符号组合成 `first_or_none(items: Iterable[T]) -> T | None`。这里的 `T` 是用 `TypeVar` 声明的**类型占位符**，用途像 Java 泛型方法的 `<T>`：输入元素与非空返回值共用同一个类型，而不是说“返回什么都行”。传入 `["DE", "FR"]` 得到 `"DE"`，传入空列表得到 `None`。对一个是否为空还未知的字符串列表，调用方应先用 `if value is not None:` 排除空值，再调用 `value.lower()`。
+
+示例中的 `Protocol` 则描述**传进来的对象要有什么能力**：`total_price` 只读 `item.price`，所以 `Product` 有一个类型为 `Decimal` 的 `price` 字段就够了，不必写 Java 式的 `implements Priced`。反过来，`{"price": "25.50"}` 不是同一种结构：字典的键不是对象属性，字符串也不是 `Decimal`。类型检查器可以指出这种不匹配，却不会替你把 JSON 转成商品对象。
 
 ### 教案：先定义行为，再写类型（建议 35 分钟）
 

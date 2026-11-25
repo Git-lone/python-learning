@@ -41,6 +41,10 @@ for step in range(1, max_steps + 1):
 
 ### 最小状态机
 
+先分清三个对象：`ToolCall` 是“请做这件事”的请求单；`ToolObservation` 是执行器带回的结果（也可能是错误）；`FinalAnswer` 是模型表示“不再请求工具”的回答。在 Java 里可以用一个 sealed interface 和两种 record 表达“下一步要么是请求，要么是回答”。Python 写作 `Action = ToolCall | FinalAnswer`；这个类型标注本身不会执行工具，也不会校验来自网络的 JSON。
+
+手算一次：开始时历史为空，`DemoModel` 返回加法请求，还没有算出 5。循环找到注册的 `add` 后才把结果 5 作为观察写入历史。**假设 `max_steps=1`，此时能拿到最终答案吗？** 不能：第一步已经用完，循环抛出 `StepLimitError`；第二次模型决策才会把 5 写进最终回答。工具成功、模型结束、业务完成，是三个不同的判断。
+
 1. 组装目标、策略、可用工具和经过筛选的上下文。
 2. 模型返回 `ToolCall` 或 `FinalAnswer`。
 3. 应用验证工具名、参数、权限、预算和是否需要人工确认。

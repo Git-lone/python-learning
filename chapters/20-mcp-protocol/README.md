@@ -32,6 +32,14 @@ MCP 是客户端与服务端的协议，不是 Python 函数装饰器的别名�
 
 ### 代码路径
 
+这里的 **stdio** 是标准输入和标准输出。用 Java 的 `ProcessBuilder` 作类比：父进程向子进程的标准输入写请求，从子进程的标准输出读回复。管道只搬运字节；MCP 另行约定怎样列出工具、传参数和表示错误。本章没有 HTTP 端口，也没有模型参与，是真实的本地跨进程调用。
+
+用工单查两次，就能分清“接口长什么样”和“这次业务是否成功”：
+
+1. `list_tools()` 返回工具说明与 **schema**（数据形状约定）。这里 `ticket_status` 接受字符串 `ticket_id`，类似 Java 请求 DTO 的字段定义。参数类型正确不等于这个工单存在，也不代表有权访问。
+2. 给 `call_tool` 传 `{"ticket_id": "DEMO-1"}`，客户端先检查 `is_error`，再让 `Ticket.model_validate` 读取结构化结果，拿到 `waiting_for_customer`。
+3. 只把编号改成 `MISSING`：参数仍合法、进程仍能通信，服务端却查无此单，结果中 `is_error` 为真。若子进程压根没启动，则连这样的业务结果都收不到——应排查连接，而不是让用户换一个工单号。
+
 - [mcp_server.py](../../agent_lab/mcp_server.py)：用 MCP Python SDK v2 的 `MCPServer` 注册只读合成工单查询，Pydantic 生成并校验输出结构。
 - [mcp_demo.py](../../agent_lab/mcp_demo.py)：`StdioServerParameters` 启动当前虚拟环境 Python；`Client` 管理会话生命周期；发现工具后调用，使用 `is_error` 和 `structured_content` 校验结果。
 - [test_mcp.py](../../tests/test_mcp.py)：在真实子进程里跑整个链路，设超时，退出时回收连接和子进程。

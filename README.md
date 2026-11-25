@@ -14,7 +14,7 @@
 - [作品集与诚实的简历表述](career/PORTFOLIO.md)
 - [官方资料与版本说明](career/REFERENCES.md)
 - [本次验证记录与未测范围](career/VERIFICATION.md)
-- [章节索引](INDEX.md)
+- [章节索引：按学习顺序，或从熟悉的 Java 概念反查](INDEX.md)
 
 刚接触 Python，可以从[第 1 章](chapters/01-basics/README.md)开始。每章先填学案里的预测，再运行示例、对照输出，最后用练习检查自己能否独立实现。章节写作约定见[课程写作基准](COURSE_DESIGN.md)。
 

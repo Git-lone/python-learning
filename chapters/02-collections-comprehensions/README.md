@@ -60,9 +60,19 @@ for _, amount, paid in orders:  # 每次取一条订单；_ 接收本次不用�
 
 ### 其他容器怎么选？
 
-`list` 有顺序且可变，`tuple` 有顺序且通常表达固定结构，`set` 负责唯一性和集合运算，`dict` 保存键值映射。切片 `items[start:stop:step]` 产生新序列；负下标从尾部计数。
+如果只问“出现过哪些国家”，用 `set`（类似 Java 的 `HashSet`，重复的国家只保留一份）；如果还要问“某个国家对应什么金额”，用 `dict`（字典，类似 `Map`，按键取值）。读取不存在的键时，`amounts.get("IT")` 默认返回 `None`，而 `amounts["IT"]` 会抛出 `KeyError`。前者适合“没有也正常”，后者适合“这里必须有值”。
 
-解包让结构更清楚：`country, amount, paid = order`。读取可能不存在的键可用 `mapping.get(key)`，但如果缺失本身是程序错误，应保留 `mapping[key]` 让错误尽早暴露。
+如果要取连续几条明细，用**切片**：`items[start:stop]` 取左端点、不取右端点。列表切片与 Java 的 `subList(start, stop)` 在边界上相似，但前者返回新的列表，后者是原列表的视图。试着预测两行输出：
+
+```python
+countries = ["DE", "FR", "IT"]
+first_two = countries[:2]       # 省略起点就是从开头取
+first_two[0] = "ES"
+print(first_two)               # ['ES', 'FR']
+print(countries)               # ['DE', 'FR', 'IT']
+```
+
+这里替换的是新列表里的一个位置。切片不会递归复制元素；如果元素本身是可变对象，两个列表仍可能指向同一个对象。再拿原列表试两种读法：`countries[-1]` 从末尾取一个值，得到 `"IT"`；`countries[::2]` 从头开始每隔一个位置取一次，得到 `["DE", "IT"]`。第二个冒号后面的数是步长。
 
 ### 教案：为数据选择集合（建议 30 分钟）
 
