@@ -33,6 +33,33 @@ squares = [number**2 for number in numbers if number % 2 == 0]
 
 ## Python 知识
 
+### 一条订单为什么用元组，一批订单为什么用列表？
+
+**元组（`tuple`）是按位置保存一组值的序列。** 元素可以是不同类型；元组建好后，不能增删元素，也不能替换某个位置上的值。来看本章第一条订单：
+
+```python
+order = ("DE", 120, True)       # 一条订单：国家、金额、是否已支付
+country, amount, paid = order   # 从左到右取出三个值，这叫“解包”
+print(country, amount, paid)    # DE 120 True
+```
+
+用 Java 表达同一条业务数据，可以定义 `record Order(String country, int amount, boolean paid) {}`，再用 `new Order("DE", 120, true)` 创建订单。区别在于：Java 用 `order.amount()` 按名字读金额；普通元组没有字段名，`order[1]` 是金额，只因为我们约定把金额放在第二个位置。即使把解包写成 `amount, country, paid = order`，Python 也不会按名字匹配：此时 `amount` 是 `"DE"`。如果订单要跨模块传递，第 4 章的数据类能让字段含义更清楚。
+
+示例外面还有一层列表 `orders = [order]`，类似 Java 的 `ArrayList<Order>` 里装了一条订单。用 `orders.append(("FR", 78, True))` 可以加入下一条：**列表增长了，原来的元组没变。**
+
+现在读示例里的 `sum(amount for _, amount, paid in orders if paid)`。先把它展开成循环：
+
+```python
+paid_total = 0
+for _, amount, paid in orders:  # 每次取一条订单；_ 接收本次不用的国家
+    if paid:
+        paid_total += amount
+```
+
+对配套示例里的三条订单，总额依次是 `120`、`198`、`198`。最后一条金额 `42` 没有计入，因为它未支付。这里的 `_` 是普通变量名，表示“取到这个值，但后面不用”。
+
+### 其他容器怎么选？
+
 `list` 有顺序且可变，`tuple` 有顺序且通常表达固定结构，`set` 负责唯一性和集合运算，`dict` 保存键值映射。切片 `items[start:stop:step]` 产生新序列；负下标从尾部计数。
 
 解包让结构更清楚：`country, amount, paid = order`。读取可能不存在的键可用 `mapping.get(key)`，但如果缺失本身是程序错误，应保留 `mapping[key]` 让错误尽早暴露。

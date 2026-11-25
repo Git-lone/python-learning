@@ -35,6 +35,20 @@ def make_multiplier(factor: int):
 
 ## Python 知识
 
+### 第 2 章的元组，在函数里怎么用？
+
+Java 方法的 `int... values` 会把传入的整数收集为一个数组。Python 定义函数时写 `*values` 也能接收数量不定的位置参数，但函数体里拿到的是**元组**。同一个星号放在调用处，方向恰好相反：把一组值拆开传入。
+
+```python
+def total(*values):       # 收集：调用 total(2, 3) 时，values 是 (2, 3)
+    return sum(values)
+
+amounts = (2, 3)
+print(total(*amounts))    # 展开：相当于 total(2, 3)，结果为 5
+```
+
+因此看到装饰器里的 `function(*args, **kwargs)` 时，可以读成“把收到的位置参数和按名字传入的参数原样转交”。其中 `args` 是元组，`kwargs` 是字典；起作用的是星号，不是这两个变量名。
+
 参数顺序通常是普通位置参数、`*args`、仅限关键字参数和 `**kwargs`。默认值在函数定义时求值，因此不要把可变列表或字典作为默认值；改用 `None` 后在函数内部创建。
 
 闭包保存自由变量。装饰器本质是高阶函数；通用装饰器可用 `ParamSpec` 和 `TypeVar` 保留参数与返回值类型，用 `@wraps` 保留名称、文档和测试工具需要的元数据。
